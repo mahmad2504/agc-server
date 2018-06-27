@@ -1,10 +1,25 @@
 <?php
 
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 include('path.php');
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-define('DGANTTFOLDER','./dgantt');
+define('DGANTTFOLDER','dgantt');
 define('CPARAMS',DGANTTFOLDER.'/core/cparams.php');
 define('SYNC_SCRIPT',DGANTTFOLDER.'/modules/sync/index.php');
 define('GANTT_SCRIPT',DGANTTFOLDER.'/modules/gantt/index.php');
@@ -18,6 +33,7 @@ define('STATUS_SCRIPT',DGANTTFOLDER.'/modules/status/index.php');
 define('DEPENDENCOES_SCRIPT',DGANTTFOLDER.'/modules/dependencies/index.php');
 define('TIMESHEET_SCRIPT',DGANTTFOLDER.'/modules/timesheet/index.php');
 define('AUDIT_SCRIPT',DGANTTFOLDER.'/modules/audit/index.php');
+define('REPORT_SCRIPT',DGANTTFOLDER.'/modules/report/index.php');
 
 define('COMMON',DGANTTFOLDER.'/core/common.php');
 define('GLOBALS',DGANTTFOLDER.'/core/globals.php');
@@ -38,6 +54,7 @@ if($plan == 'none')
 	define('STATUS_FOLDER', "../../".DGANTTFOLDER."/modules/status/");
 	define('TIMESHEET_FOLDER', "../../".DGANTTFOLDER."/modules/timesheet");
 	define('AUDIT_FOLDER', "../../".DGANTTFOLDER."/modules/audit");
+	define('REPORT_FOLDER', "../../".DGANTTFOLDER."/modules/report");
 }
 else
 {
@@ -48,6 +65,7 @@ else
 	define('TIMESHEET_FOLDER', "../../../".DGANTTFOLDER."/modules/timesheet");
 	define('STATUS_FOLDER', "../../../".DGANTTFOLDER."/modules/status/");
 	define('AUDIT_FOLDER', "../../../".DGANTTFOLDER."/modules/audit");
+	define('REPORT_FOLDER', "../../../".DGANTTFOLDER."/modules/report");
 }
 
 //$filename = 'core\\cmd'.strtolower($cmd).".php";
@@ -72,6 +90,9 @@ else
 
 switch(strtolower($cmd))
 {
+	case 'report':
+		require_once(REPORT_SCRIPT);
+		break;
 	case 'timesheet':
 		require_once(TIMESHEET_SCRIPT);
 		break;

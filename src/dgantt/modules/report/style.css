@@ -1,0 +1,106 @@
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	background-color: #AAB4BF;
+}
+
+a:link, a:visited, a:active {
+	color: #999;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+	color: #FF9900;
+}
+
+#thebox {
+	width: 100em;
+	background-color: white;
+	color: #666;
+	border: 1px #cccccc solid;
+	margin: 50px auto 0px auto;
+	padding: 0px 20px 0 20px
+}
+
+#logo { 
+	text-align: center;
+	width: 113px;
+	height: 174px;
+	margin: 0px 5px -300px -10px;
+	padding: 200px 10px 5px 10px;
+	background-color: #fff;
+	color: #2C2220;
+	font-family: Helvetica, sans-serif;
+	font-weight: normal;
+	font-size: 11px;
+	letter-spacing: 5px;
+	text-transform: uppercase;
+	background:url(head.jpg) top left no-repeat;
+}
+
+#nav {
+	width: 455px;
+	margin: -65px 0px 50px 100px;
+	padding: 0px 0px 0px 0px;
+	color: #999;
+	font-family: 'Gill Sans', Verdana, Helvetica, sans-serif;
+	font-weight: normal;
+	font-size: 11px;
+}
+
+#nav li {
+	list-style: none;
+	display: inline;
+	margin-right: 20px;
+}
+
+#nav a {
+	font-size: 10px;
+	font-weight: bold;
+	color: #999;
+	text-decoration: none;
+}
+
+#nav a:hover {
+	color: #74a8f5;
+	text-decoration: underline;
+}
+
+#content {
+	color: #666;
+	font-family: 'Gill Sans', Verdana, Helvetica, sans-serif;
+	margin: 0px 0px 0px 0px;
+	padding: 100px 10px 10px 10px;
+}
+
+#content h1 {
+
+font-size: 12px;
+
+}
+
+#content h1 a:link, a:visited, a:active {
+	color: #74a8f5;
+	font-family: 'Gill Sans', Verdana, Helvetica, sans-serif;
+	
+	font-weight: normal;
+}
+
+#content h1 a:hover {
+	text-decoration: underline;
+	font-family: 'Gill Sans', Verdana, Helvetica, sans-serif;
+	color: #74a8f5;
+}
+
+#content h2 { 
+font-size: 10px;
+letter-spacing: 3px;
+text-transform: uppercase;
+}
+
+#foot {
+
+text-align: center;
+color: #333333;
+}

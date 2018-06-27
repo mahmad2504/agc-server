@@ -86,7 +86,6 @@ class Sync
 			echo '<p1 style="background-color: orange;">State after Update from Jira</p>';
 		
 		$gan->Dump($debug);
-	
 		$data = array(
 			"GAN"  => serialize($gan),
 			"PROJECT" => basename($GAN_FILE)
@@ -229,9 +228,27 @@ class Sync
 		if($jtask->assignee != null)
 		{
 			//echo $jtask->assignee.EOL;
+	
+			//echo $jtask->assignee.EOL;
 			$resource = $gan->AddResource($jtask->assignee,$jtask->emailAddress);
+			//echo $task->Status." ".$jtask->key.EOL;
+			if($task->Status != 'OPEN')
+			{
+				$task->ActualResource = $resource;
+				$task->JiraAssignedResource=1;
+			}
+			else if($task->ForcePlannedResource == 0)
+			{
 			$task->ActualResource = $resource;
 			$task->JiraAssignedResource=1;
+		}
+			else
+			{
+				echo "Overriding resource=".$resource->Name." for ".$jtask->key.EOL;
+				$task->ForcePlannedResource = 2;
+			}
+			
+			
 		}
 		if($jtask->timeoriginalestimate != null)
 		{
@@ -375,7 +392,26 @@ class Sync
 					
 					$task = $gan->AddTask($jtask->summary,$key,$jtask->query->Task);
 					
-					if(stristr($jtask->issuetype,"requirement")!=NULL)
+					if(stristr($jtask->issuetype,"workpackage")!=NULL)
+					{
+						//echo $jtask->issuetype.EOL;
+						$task->Query = 'implements';
+					}
+					if(stristr($jtask->issuetype,"milestone")!=NULL)
+					{
+						//echo $jtask->issuetype.EOL;
+						$task->Query = 'implements';
+					}
+					if(stristr($jtask->issuetype,"project")!=NULL)
+					{
+						//echo $jtask->issuetype.EOL;
+						$task->Query = 'implements';
+					}
+					//else if(stristr($jtask->issuetype,"story")!=NULL)
+					//{
+					//	$task->Query = 'implements';
+					//}
+					else if(stristr($jtask->issuetype,"requirement")!=NULL)
 					{
 						//echo $jtask->issuetype.EOL;
 						$task->Query = 'implements';
@@ -431,10 +467,47 @@ class Sync
 		foreach($duplicates as $task)
 		{
 			if($task->JiraId == null)
-				echo '<p>'.$task->Name." Appearing in multiple queries".'</p>';
+				echo '<p> Delete '.$task->Name." from plan. It looks misplaced in plan as per Jira".'</p>';
 			else
-				echo '<p>'.$task->JiraId." Appearing in multiple queries".'</p>';
+				echo '<p> Delete '.$task->JiraId." from plan . It looks misplaced in plan as per Jira".'</p>';
 		}
+		foreach($queries as $query)
+		{
+			$jtasks = $query->Jiratasks;
+			if($jtasks != null)
+			{
+				//echo "Filter ".EOL;
+				$this->FindTaskInChildren($query->Task,$jtasks,$query->Task);
+			}
+			
+			//echo($query->Task->JiraId);
+		}
+	}
+	function FindTaskInChildren($task, $jtasks,$filtertask)
+	{
+		foreach($task->Children as $child)
+		{
+			$retval = $this->FindTask($child->JiraId,$jtasks);
+			if($retval == 0)
+			{
+				if(strlen($child->JiraId)>0)
+				     echo "Delete ".$child->JiraId." from plan. It looks misplaced under this filter ".$filtertask->Name.EOL;
+			}
+			//if(count($child->Children)>0)
+			//{
+			//	$this->FindTaskInChildren($child,$jtasks,$filtertask);
+			//}
+		}
+	}
+	function FindTask($fkey,$jtasks)
+	{
+		foreach($jtasks as $key=>$jtask)
+		{
+			//echo $fkey." ".$key.EOL;
+			if($key == $fkey)
+				return 1;
+		}
+		return 0;
 	}
 }
 ?>

@@ -1,5 +1,20 @@
 <?php
 
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 class Query
 {
 	private $task;
@@ -89,6 +104,49 @@ class Query
 			
 			$links = array_merge($tasks[0]['issuelinks'][LINK_TESTS]);
 			
+			$query="issue in (";
+			$del = "";
+			foreach($links as $link)
+			{
+				$query=$query."$del".$link;
+				$del = ",";
+			}
+			$query=$query.")";
+			if(count($links) == 0)
+			{
+				$query = '';
+				return $query;
+			}
+			if($jirainfo != null)
+			{
+				$obj = new Obj();
+				$obj->query = $query;
+				$obj->jiracred = $jirainfo;
+				return $obj;
+			}
+			return $query;
+		}
+		else if(strtolower(trim($jql)) == 'all outward links')
+		{
+			
+			$fields = 'key,status,summary,start,end,timeoriginalestimate,timespent,labels,assignee,created,issuetype,issuelinks,emailAddress,aggregatetimespent,subtasks';
+			
+			
+			$jirainfo = $project->GetJiraCredentials($this->task->Tags[0]);
+			if($jirainfo != null)
+				Jirarest::SetUrl($jirainfo->url,$jirainfo->user,$jirainfo->pass);
+			
+			$tasks  = Jirarest::Search("key=".$this->task->Tags[0],1,$fields);
+			
+			//var_dump($tasks[0]);
+			//$this->task->Tags[0].EOL;
+			
+			//echo count($tasks[0]['issuelinks'][LINK_IMPLEMENTS]);
+			
+			$links = array();
+			if(isset($tasks[0]['issuelinks'][OTHER_OUTWARD]))
+				$links = $tasks[0]['issuelinks'][OTHER_OUTWARD];
+
 			$query="issue in (";
 			$del = "";
 			foreach($links as $link)
@@ -475,6 +533,7 @@ class GanProject
 	private $end=null;
 	private $root;
 	private $isarchived=0;
+	private $weekend =  'Tue';
 	private $additional_jira=array();
 	
 	function __construct($doc)
@@ -507,6 +566,10 @@ class GanProject
 					case 'start':
 						$dt = Date('Y-m-d',strtotime($fields[1]));
 						$this->start =  $dt;
+						break;
+					case 'weekend':
+						$this->weekend = $fields[1];
+						//echo substr($fields[1], 3);
 						break;
 					case 'end':
 						//Date('Y-m-D'.strtotime($fields[1]);
@@ -562,6 +625,9 @@ class GanProject
 	{
 		switch($name)
 		{
+			case 'Weekend':
+				return $this->weekend;
+				break;
 			case 'IsArchived':
 				return $this->isarchived;
 				break;
@@ -651,7 +717,6 @@ class GanResource
 	private $parent;
 	private $tasks=array();
 	private $vacations=array();
-
 	
 	function __construct($doc,$DOMElement=null,$effciencyid=null,$groupid=null,$parent=null)
 	{
@@ -666,6 +731,8 @@ class GanResource
 		$this->name = $DOMElement->getAttribute('name');
 		$this->id = $DOMElement->getAttribute('id');
 		$this->email = $DOMElement->getAttribute('contacts');
+		//$this->role = $DOMElement->getAttribute('function');
+		
 		$this->domelement = $DOMElement;
 		if($effciencyid != null)
 		{
@@ -787,6 +854,7 @@ class GanResources
 		$xpath = new DOMXPath($doc);
 		
 		$efficiencyid = null;
+		$role = "";
 		$groupid = null;
 		$records = $xpath->query('/project/resources/custom-property-definition');
 		foreach ($records as $i => $cd) 
@@ -872,12 +940,14 @@ class GanAllocation
 	private $domelement;
 	private $taskid;
 	private $resourceid;
+	private $responsible;
 	function __construct($DOMElement)
 	{
 		$this->domelement = $DOMElement;
 		//<allocation task-id="0" resource-id="0" function="Default:0" responsible="true" load="100.0"/>
 		$this->taskid = $DOMElement->getAttribute('task-id');
 		$this->resourceid = $DOMElement->getAttribute('resource-id');
+		$this->responsible = $DOMElement->getAttribute('responsible');
 	}
 	public function __get($name)
 	{
@@ -887,6 +957,8 @@ class GanAllocation
 				return $this->taskid;
 			case 'ResourceId':
 				return $this->resourceid;
+			case 'forced':
+				return $this->responsible;
 			default:
 				echo "GanAllocation cannot access ".$name." property";
 				break;
@@ -1014,6 +1086,7 @@ class GanTask
 	private $querynode;
 	public $handled=0;
 	public $refcount=0;
+	public $forceplannedresource=0;
 	private $project;
 	//<task id="0" name="Project-1" color="#8cb6ce" meeting="false" start="2017-08-24" duration="1" complete="0" expand="true">
 	function __construct($project,$parenttask,$doc, $DOMElement=null,$cproperties=null,$jira=null,$rebuild=0,$tstart=null,$tend=null)
@@ -1131,6 +1204,9 @@ class GanTask
 	{
 		switch($name)
 		{
+			case 'ForcePlannedResource':
+				$this->forceplannedresource=$value;
+				break;
 			case 'Query':
 				if(strlen(trim($value)) > 0)
 				{
@@ -1230,13 +1306,15 @@ class GanTask
 				break;
 			case 'Status':
 				$this->status = strtoupper($value);
-				if (( $this->status == 'DONE')||( $this->status == 'RESOLVED')||($this->status == 'CLOSED' )||($this->status == 'IMPLEMENTED' )||($this->status == 'VERIFIED')||($this->status == 'SATISFIED'))
+				if (( $this->status == 'IN REVIEW')||( $this->status == 'DONE')||( $this->status == 'RESOLVED')||($this->status == 'CLOSED' )||($this->status == 'IMPLEMENTED' )||($this->status == 'VERIFIED')||($this->status == 'SATISFIED'))
 				{
 					$this->status = 'RESOLVED';
 					break;
 				}
-				if ( ($this->status == 'OPEN')||($this->status == 'REOPENED') )
+				if ( ($this->status == 'OPEN')||($this->status == 'REOPENED')||($this->status == 'BACKLOG'))
 					$this->status = 'OPEN';
+				else if($this->status == 'IN PROGRESS')
+					$this->status = 'IN PROGRESS';
 				else
 					$this->status = 'OPEN';
 				break;
@@ -1257,6 +1335,9 @@ class GanTask
 	{
 		switch($name)
 		{
+			case 'ForcePlannedResource':
+				return $this->forceplannedresource;
+				break;
 			case 'IsExcluded':
 				foreach($this->Tags as $tag)
 				{
@@ -1841,6 +1922,11 @@ class Gan
 				
 				$task = $this->TaskList[$allocation->TaskId];
 				$task->PlannedResource = $resource;
+				if($allocation->forced == 'true')
+					$task->ForcePlannedResource  = 1;
+				else
+					$task->ForcePlannedResource  = 0;
+				//echo $allocation->forced.EOL;
 			}
 		}
 	}
@@ -1856,6 +1942,9 @@ class Gan
 	{
 		switch($name)
 		{
+			case 'Weekend':
+				return $this->project->Weekend;
+				break;
 			case 'IsArchived':
 				return $this->project->IsArchived;
 				break;

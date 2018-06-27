@@ -1,4 +1,20 @@
 <?php
+
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 require_once('common.php');		
 class Object{
 }
@@ -31,6 +47,8 @@ define('DEPENDENCY_DEPENDS',0);
 define('LINK_IMPLEMENTS',2);
 define('LINK_IMPLEMENTS_BACKWARD',3);
 define('LINK_TESTS',3);
+define('OTHER_OUTWARD',4);
+define('OTHER_INWARD',5);
 
 $start = '';
 $end = '';
@@ -629,6 +647,37 @@ class Jirarest
 							//echo  "--->".$issuelink['outwardIssue']['key'].EOL;
 						}
 					}
+					
+					if( strtolower($issuelink['type']['name']) == 'dependency')
+					{
+						if(isset($issuelink['outwardIssue']))
+						{
+							$issuelinks[DEPENDENCY_DEPENDS][] = $issuelink['outwardIssue']['key'];
+							//echo  "--->".$issuelink['outwardIssue']['key'].EOL;
+						}
+					}
+					
+					
+					if( (strtolower($issuelink['type']['name']) == 'cloners')||
+					    (strtolower($issuelink['type']['name']) == 'dependency')||
+						(strtolower($issuelink['type']['name']) == 'blocked by'))
+					{
+						// ignore clones
+					}
+					else 
+					{
+						if(isset($issuelink['outwardIssue']))
+						{
+							$issuelinks[OTHER_OUTWARD][] = $issuelink['outwardIssue']['key'];
+							//echo  "--->".$issuelink['outwardIssue']['key'].EOL;
+						}
+						if(isset($issuelink['inwardIssue']))
+						{
+							$issuelinks[OTHER_INWARD][] = $issuelink['inwardIssue']['key'];
+							//echo  "--->".$issuelink['outwardIssue']['key'].EOL;
+						}
+						
+					}
 				}
 				//echo " ".count($issuelinks).EOL;
 				return $issuelinks;
@@ -640,9 +689,12 @@ class Jirarest
 				break;
 			case 'labels':
 				$labels = array();
+				if(isset($data['fields']['labels']))
+				{
 				foreach($data['fields']['labels'] as $label)
 				{
 					$labels[] = $label;
+				}
 				}
 				return $labels;
 				break;
@@ -875,15 +927,17 @@ class Jirarest
 		$comment_array = array();
 		$curl = self::getcurl();
 		$comments = self::GET("issue/$key/comment");
-		if($comment == null)
+		if($comments == null)
 			return null;
 		foreach ($comments['comments'] as $comment)
 		{
 			$cmt = new Obj();	
-			$cmt->date= explode("T", $comment['created'], 2)[0];
+			//$cmt->date= explode("T", $comment['updated'], 2)[0];
+			$cmt->date = $comment['updated'];
 			//echo $cmt->date.EOL;
 			//$cmt->date = date('Y-m-d',strtotime($cmt->date));
 			$cmt->comment = $comment['body'];
+			$cmt->author = $comment['updateAuthor']['displayName'];
 			$comment_array[] = $cmt;
 		}
 		return $comment_array;

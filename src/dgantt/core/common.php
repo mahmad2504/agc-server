@@ -1,5 +1,20 @@
 <?php
 
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 //session_start(); /* Starts the session */
 //if($_SESSION['Active'] == false)
 //{ /* Redirects user to Login.php if not logged in */
@@ -19,6 +34,7 @@ if (!is_dir($organization_folder)) {
 
 $project_folder = $organization_folder."/".$project_name;
 $gan_folder = DGANTTFOLDER."/projects/".$organization."/".$project_name;
+
 if (!is_dir($project_folder)) {
    trace("Project ".$project_name." ".' Does not exist','MSG');
    exit();
@@ -44,6 +60,7 @@ require_once('gan.php');
 require_once('jirarest.php');
 require_once('jira.php');
 require_once('filter.php');
+require_once('tj.php');
 require_once('jsgantt.php');
 require_once('history.php');
 require_once('plan.php');

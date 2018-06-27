@@ -1,3 +1,19 @@
+<?php
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+?>
 <!DOCTYPE html>
 <html lang="en" class="no-js">
 	<!-- Head -->
@@ -115,7 +131,7 @@
 				if($level > 0)
 					echo 'g.setCloseLevel('.$level.');';
 				?>
-				g.setDayMajorDateDisplayFormat('dd mon');
+				g.setDayMajorDateDisplayFormat('dd mon yy');
 				g.setDateTaskDisplayFormat('yyyy-mm-dd');
 				// Use the XML file parser
 				<?php
@@ -146,7 +162,7 @@
 		</script>
 		<!-- Footer -->
 		<div style="font-size:10px;" class="footer text-center">
-			<p>© Copyright 2013-2017 jsGanttImproved<br />
+			<p>© Copyright 2017-2018 jsGanttImproved<br />
 			Designed with <a href="https://v4-alpha.getbootstrap.com" target="_blank">Bootstrap</a> and <a href="http://fontawesome.io" target="_blank">Font Awesome</a><br>
 			Integrated with Jira by <a href="" target="_blank">Mumtaz_Ahmad@mentor.com</a></p>
 		</div>

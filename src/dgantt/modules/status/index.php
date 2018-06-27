@@ -1,5 +1,21 @@
 
 <?php
+
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 require_once(COMMON);
 if(!file_exists($GAN_FILE))
 {
@@ -27,13 +43,14 @@ if($type=='progress')
 		{
 			if($milestone->WeekProgress == 0)
 				$barColor = '#00cc00';
-			else if($milestone->WeekProgress > 0)
+			else //if($milestone->WeekProgress > 0)
 				$barColor = '#00ff00';
-			else
-				$barColor = '#ff0000';
+			//else
+			//	$barColor = '#ff0000';
 			$barWidth = 5;
 			$barBgColor ='#dcdcdc';
 			$initValue = $milestone->Progress;
+			
 			$radius = 10;
 			$fontSize = 12;
 		}
@@ -77,6 +94,54 @@ else if($type=='duration')
 	$fontSize = 10;
 
 }
+else if($type=='deadline')
+{
+	$deadline=$milestone->Deadline;
+	
+	if(strlen($deadline)==0)
+	{
+		$deadline="NA";
+	}
+	
+	$color = '#000000';
+	$tcolor = '#ffffff';
+	if($milestone->FinishDate > 0)
+	{
+		$color = '#adadad';
+	}
+}
+else if($type=='end')
+{
+	$end=$milestone->End;
+	$color = '#000000';
+	$tcolor = '#ffffff';
+	
+	if($milestone->FinishDate > 0)
+	{
+		$end=$milestone->FinishDate;
+		$color = '#adadad';
+	}
+	else
+	{
+		if(!$milestone->IsEstimated)
+		{
+			$end="NA";
+		}
+		else if(strlen($milestone->Deadline)!=0)
+		{
+			if( strtotime($milestone->End) > strtotime($milestone->Deadline) )
+			{
+				$color = '#ff0000';
+				$tcolor = '#ffffff';
+			}
+			else
+			{
+				$color = '#00ff00';
+				$tcolor = '#000000';
+			}
+		}
+	}
+}
 else if($type == 'tags')
 {
 	$tags = $milestone->JiraTags;
@@ -116,6 +181,53 @@ else if($type == 'tags')
 		left:50%;
 		transform:translate(50%,-50%);
 		font-size:10px;
+	}	
+	time.icon
+	{
+	  font-size: .4em; /* change icon size */
+	  display: block;
+	  position: relative;
+	  width: 7em;
+	  height: 7em;
+	  background-color: #fff;
+	  border-radius: 0.6em;
+	  box-shadow: 0 1px 0 #bdbdbd, 0 2px 0 #fff;
+	  overflow: hidden;
+	}
+
+	time.icon *
+	{
+	  display: block;
+	  width: 100%;
+	  font-size: 1em;
+	  font-weight: bold;
+	  font-style: normal;
+	  text-align: center;
+	}
+	time.icon strong
+	{
+	  position: absolute;
+	  top: 0;
+	  padding: 0.4em 0;
+	  
+	  
+	  color: <?php echo $tcolor; ?>;
+	  background-color: <?php echo $color; ?>;
+	  //border-bottom: 1px dashed #f37302;
+	  box-shadow: 0 2px 0 #fd9f1b;
+	}
+	time.icon em
+	{
+	  position: absolute;
+	  bottom: 0.3em;
+	  color: #fd9f1b;
+	}
+	time.icon span
+	{
+	  font-size: 2.8em;
+	  letter-spacing: -0.05em;
+	  padding-top: 0.8em;
+	  color: #2f2f2f;
 	}
 	</style>
 	
@@ -124,7 +236,7 @@ else if($type == 'tags')
   <?php 
 	if($type=='duration')
 		echo '<div style="text-align:center;color=red" >'.$initValue.'</div>';
-	if($type=='progress')
+	else if($type=='progress')
 	{
 		echo '<div id="indicatorContainer"  onclick="window.open(\''.$link.'\')" style="cursor: pointer;">';
 		echo '</div>';
@@ -132,11 +244,65 @@ else if($type == 'tags')
 		//echo '<img src="'.STATUS_FOLDER.'down.png'.'" alt="Smiley face" height="10" width="7">';
 		//echo '</div>';
 		echo '<div id="d2" >';
-		if($milestone->WeekProgress !=0 )
+		if($milestone->WeekProgress > 0 )
 			echo round($milestone->WeekProgress,0)."%";
 		
 		
 		echo '</div>';
+	}
+	else if($type=='deadline')
+	{
+		if($deadline =="NA")
+		{
+			echo '<time datetime="'.''.'" class="icon">';
+			echo '<em>'.''.'</em>';
+			echo '<strong>'.''.'</strong>';
+			echo '<span>'.'NA'.'</span>';
+			echo '</time>';
+			
+		}
+		else
+		{
+			$m = $month = date("m",strtotime($deadline));
+			$d = $month = date("d",strtotime($deadline));
+			$y = $month = date("Y",strtotime($deadline));
+		
+			$jd = cal_to_jd(CAL_GREGORIAN,$m,$d,$y);
+			$dayofweek = jddayofweek($jd,1);
+		
+			$monthname =  date("F", strtotime($deadline));
+			echo '<time datetime="'.$deadline.'" class="icon">';
+			echo '<em>'.$dayofweek.'</em>';
+			echo '<strong>'.$monthname.'</strong>';
+			echo '<span>'.$d.'</span>';
+			echo '</time>';
+		}
+	}
+	else if($type=='end')
+	{
+		if($end=="NA")
+		{
+			echo '<time datetime="'.''.'" class="icon">';
+			echo '<em>'.''.'</em>';
+			echo '<strong>'.''.'</strong>';
+			echo '<span>'.'NA'.'</span>';
+			echo '</time>';
+			
+		}
+		else
+		{
+			$m = $month = date("m",strtotime($end));
+			$d = $month = date("d",strtotime($end));
+			$y = $month = date("Y",strtotime($end));
+			$jd = cal_to_jd(CAL_GREGORIAN,$m,$d,$y);
+			$dayofweek = jddayofweek($jd,1);
+			$monthname =  date("F", strtotime($end));
+			echo '<time datetime="'.$end.'" class="icon">';
+			echo '<em>'.$dayofweek.'</em>';
+			echo '<strong>'.$monthname.'</strong>';
+			echo '<span>'.$d.'</span>';
+			echo '</time>';
+		}
 	}
   ?>
   <script>

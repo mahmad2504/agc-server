@@ -1,4 +1,20 @@
 <?php
+
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 require_once('common.php');	
 
 class History
@@ -206,7 +222,11 @@ class History
 			$task = $this->FindTask($tree,$tag);
 			if($task != null)
 			{
+					
+					//echo $name.EOL;
 				$returndata[$name] = $task;
+					//echo $task->Progress.EOL;
+					//var_dump($task);
 			}
 			else
 			{   // check if it is todays data then no tag means the milestone is no more existant so no data is valid anymore
@@ -268,7 +288,10 @@ class History
 
 			if($this->validateDate($name))
 			{
+				//echo $name.EOL;
 				$tree = json_decode(file_get_contents($filename));
+				//if($name == '2018-04-27')
+				//	var_dump($tree);
 				$returndata[$name] = $tree;
 				$counter = $counter + $delta;
 				continue;

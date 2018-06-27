@@ -1,4 +1,18 @@
 <?php
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
 
 require_once('common.php');
 
@@ -29,8 +43,15 @@ class Analytics
 	{
 		switch($name)
 		{
+			case 'Weekend':
+				return $this->history->gan->Weekend;
+				break;
 			case 'IsArchived':
 				return $this->history->gan->IsArchived;
+				break;
+			case 'WeeklyReport':
+				global $date;
+				return $this->GetWeeklyReport($this->msdata);
 				break;
 			case 'TimeSheet':
 				global $date;
@@ -148,7 +169,10 @@ class Analytics
 			if($obj->Progress == 100)
 			{
 				if($this->finishdate == 0)
+				{
+					if($this->data->Status == 'RESOLVED')
 					$this->finishdate = $date;
+				}
 				//break;
 			}
 			else
@@ -437,10 +461,12 @@ class Analytics
 		}
 		
 	}
-	private function GetEndWeekDate($date)
+	public function GetEndWeekDate($date)
 	{
 		//$date = date('m/d/Y', time());
-		$WEEK_DAY = 'Tue';
+		//echo $this->gan->IsArchived.EOL;
+		$WEEK_DAY = ucfirst(substr($this->Weekend,0, 3));
+		//$WEEK_DAY = 'Tue';
 		$week['Fri'] = 'friday';
 		$week['Sat'] = 'saturday';
 		$week['Sun'] = 'sunday';
@@ -448,7 +474,10 @@ class Analytics
 		$week['Tue'] = 'tuesday';
 		$week['Wed'] = 'wednesday';
 		$week['Thu'] = 'thursday';
-
+		
+		if(!array_key_exists($WEEK_DAY,$week))
+			$WEEK_DAY = 'Tue';
+		
 		$weekday = $WEEK_DAY;
 		
 		$date = strtotime($date);
@@ -480,6 +509,7 @@ class Analytics
 				{
 					$this->twtasks[$task->Jtask->key] = $task->Jtask;
 					$this->twauthors[$worklog->author] = 0.0;
+					//var_dump($worklog).EOL;
 					//echo $task->Jtask->key." ".$worklog->author."  ".$date."  [".$worklog->started." ".$wdate.EOL;
 				}
 			}
@@ -488,6 +518,50 @@ class Analytics
 		{
 			$this->ProcessWorkLogs($stask,$date);
 		}
+	}
+	function GetWeeklyReport($msdata)
+	{
+		global $date;
+		$worklog = array();
+		$date = $this->GetEndWeekDate($date);
+		$this->BuildWeeklyActivity($msdata,$date);
+		
+		$worklog = new Obj();
+		$worklog->Title = 'Project';
+		if(array_key_exists(date('Y-m-d'),$msdata))
+		{
+			$current= $msdata[date('Y-m-d')];
+		$worklog->Title = $current->Title;
+		}
+		//var_dump($msdata);
+		
+		
+		$worklogs[] = $worklog;
+		
+		if($this->twtasks == null)
+			return $worklogs;
+		
+		foreach($this->twtasks as $key=>$twtask)
+		{
+			foreach($twtask->worklogs as $worklog)
+			{
+				//$friday = date('Y-M-d',strtotime('this friday', strtotime( $worklog->started)));
+				$wdate = $this->GetEndWeekDate($worklog->started);
+				$worklog->thisweek=0;
+				if(strtotime($date) == strtotime($wdate))
+				{
+					$worklog->thisweek=1;
+					//echo $key.$worklog->displayname." ".$worklog->started."  ".$worklog->timespent."d".EOL;
+					//echo $worklog->comment.EOL;
+					$worklog->key =$key;
+		
+					$worklog->keylink = '<a href="'.$this->gan->Jira->url.'/browse/'.$key.'">'.$key.'</a>';
+					$worklog->tasksummary = $twtask->summary;
+					$worklogs[] = $worklog;
+				}
+			}
+		}
+		return $worklogs;
 	}
 	function GetTimeSheet($msdata)
 	{
@@ -502,11 +576,11 @@ class Analytics
 		
 		foreach($this->twtasks as $key=>$twtask)
 			$twtask->authors=$this->twauthors;
-		//$this->grand_total = 0.0;
+		$this->grand_total = 0.0;
 		foreach($this->twtasks as $key=>$twtask)
 		{
 			$total=0.0;
-			//echo $twtask->key." ".$twtask->summary."\n";
+			//echo $twtask->key." ".$twtask->summary.EOL;
 			foreach($twtask->worklogs as $worklog)
 			{
 				//$friday = date('Y-M-d',strtotime('this friday', strtotime( $worklog->started)));
@@ -515,7 +589,8 @@ class Analytics
 				if(strtotime($date) == strtotime($wdate))
 				{
 					$worklog->thisweek=1;
-					//echo $worklog->author." ".$worklog->timespent."\n";
+					//echo $worklog->displayname." ".$worklog->timespent."d".EOL;
+					//echo $worklog->comment.EOL;
 					//if( isset($twtask->authors[$worklog->author]))
 					{
 						$twtask->authors[$worklog->author] += (float)$worklog->timespent;
@@ -593,7 +668,7 @@ class Analytics
 		//echo $this->gan->Jira->url.EOL;
 		$tasks = $this->gan->TaskListByExtId;
 		//var_dump($tasks);
-		echo $task->Title.EOL;
+		//echo $task->Title.EOL;
 		if( array_key_exists($task->ExtId, $tasks))
 			$task = $tasks[$task->ExtId];
 		else
@@ -656,6 +731,8 @@ class Analytics
 		if(array_key_exists($date,$msdata))
 		{
 			//echo $key.EOL;
+			
+			//echo $date;
 			$lastweek = $msdata[$date];
 		}
 		//$robj = new Obj();
@@ -678,6 +755,7 @@ class Analytics
 		}
 		else
 		{
+			//echo $lastweek->Progress;
 			$this->WeekProgress = $current->Progress - $lastweek->Progress;
 		}
 		$this->WeekProgress = round($this->WeekProgress,1);
