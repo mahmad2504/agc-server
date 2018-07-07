@@ -34,6 +34,7 @@ define('DEPENDENCOES_SCRIPT',DGANTTFOLDER.'/modules/dependencies/index.php');
 define('TIMESHEET_SCRIPT',DGANTTFOLDER.'/modules/timesheet/index.php');
 define('AUDIT_SCRIPT',DGANTTFOLDER.'/modules/audit/index.php');
 define('REPORT_SCRIPT',DGANTTFOLDER.'/modules/report/index.php');
+define('COMMENT_SCRIPT',DGANTTFOLDER.'/modules/comment/index.php');
 
 define('COMMON',DGANTTFOLDER.'/core/common.php');
 define('GLOBALS',DGANTTFOLDER.'/core/globals.php');
@@ -55,6 +56,7 @@ if($plan == 'none')
 	define('TIMESHEET_FOLDER', "../../".DGANTTFOLDER."/modules/timesheet");
 	define('AUDIT_FOLDER', "../../".DGANTTFOLDER."/modules/audit");
 	define('REPORT_FOLDER', "../../".DGANTTFOLDER."/modules/report");
+	define('COMMENT_FOLDER', "../../".DGANTTFOLDER."/modules/comment");
 }
 else
 {
@@ -66,6 +68,7 @@ else
 	define('STATUS_FOLDER', "../../../".DGANTTFOLDER."/modules/status/");
 	define('AUDIT_FOLDER', "../../../".DGANTTFOLDER."/modules/audit");
 	define('REPORT_FOLDER', "../../../".DGANTTFOLDER."/modules/report");
+	define('COMMENT_FOLDER', "../../../".DGANTTFOLDER."/modules/comment");
 }
 
 //$filename = 'core\\cmd'.strtolower($cmd).".php";
@@ -90,6 +93,9 @@ else
 
 switch(strtolower($cmd))
 {
+	case 'comment':
+		require_once(COMMENT_SCRIPT);
+		break;
 	case 'report':
 		require_once(REPORT_SCRIPT);
 		break;

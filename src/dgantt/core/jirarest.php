@@ -19,26 +19,6 @@ require_once('common.php');
 class Object{
 }
 
-// Overrides 
-$CustomFields['story_points']['https://mentorgraphics.atlassian.net'] = 'customfield_10004';
-$CustomFields['story_points']['https://jira.alm.mentorg.com:8080'] = 'customfield_10022';
-$CustomFields['story_points']['http://jira.alm.mentorg.com:8080'] = 'customfield_10022';
-
-$CustomFields['epic_name']['https://mentorgraphics.atlassian.net'] = 'customfield_11441';//// Please correct it
-$CustomFields['epic_name']['https://jira.alm.mentorg.com:8080'] = 'customfield_11441';
-$CustomFields['epic_name']['http://jira.alm.mentorg.com:8080'] = 'customfield_11441';
-
-$CustomFields['ext_id']['https://mentorgraphics.atlassian.net'] = 'customfield_14151';//// Please correct it
-$CustomFields['ext_id']['https://jira.alm.mentorg.com:8080'] = 'customfield_14151';
-$CustomFields['ext_id']['http://jira.alm.mentorg.com:8080'] = 'customfield_14151';
-
-$CustomFields['start']['https://mentorgraphics.atlassian.net'] = 'customfield_11642';//// Please correct it
-$CustomFields['start']['https://jira.alm.mentorg.com:8080'] = 'customfield_11642';
-$CustomFields['start']['http://jira.alm.mentorg.com:8080'] = 'customfield_11642';
-
-$CustomFields['end']['https://mentorgraphics.atlassian.net'] = 'customfield_11643';//// Please correct it
-$CustomFields['end']['https://jira.alm.mentorg.com:8080'] = 'customfield_11643';
-$CustomFields['end']['http://jira.alm.mentorg.com:8080'] = 'customfield_11643';
 
 ////////////////////////////////////////////////////////////////////
 
@@ -89,7 +69,7 @@ class Jirarest
 	}
 	static function SetUrl($url,$user=null,$pass=null)
 	{
-		global $CustomFields,$story_points,$epic_name,$ext_id,$start,$end;
+		global $CustomFields,$story_points,$epic_name,$ext_id,$start,$end,$CONF;
 		self::$url = $url;
 		if($user==null)
 			self::$user = 'himp';
@@ -100,12 +80,12 @@ class Jirarest
 			self::$pass = 'hmip';
 		else
 			self::$pass = $pass;
-		
-		$story_points = $CustomFields['story_points'][strtolower($url)] ;
-		$epic_name = $CustomFields['epic_name'][strtolower($url)] ;
-		$ext_id = $CustomFields['ext_id'][strtolower($url)] ;
-		$start = $CustomFields['start'][strtolower($url)] ;
-		$end = $CustomFields['end'][strtolower($url)] ;
+
+		$story_points = $CONF->story_points;//$CustomFields['story_points'][strtolower($url)] ;
+		$epic_name = $CONF->epic_name;
+		$ext_id = $CONF->ext_id;
+		$start = $CONF->start;
+		$end = $CONF->end;
 	}
 	static function RestApi($method,$resource)
 	{

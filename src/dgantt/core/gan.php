@@ -171,6 +171,22 @@ class Query
 		}
 		else if(strtolower(trim($jql)) == 'implements')
 		{
+			global $CONF;
+
+			
+			$jirainfo = $project->GetJiraCredentials($this->task->Tags[0]);
+			$query = "issue in linkedIssues(".$this->task->Tags[0].",'".$CONF->implements."')";
+
+			if($jirainfo == null)
+				return $query;
+	
+			$obj = new Obj();
+			$obj->query = $query;
+			$obj->jiracred = $jirainfo;
+			return $obj;
+		}
+		else if(strtolower(trim($jql)) == 'implements2')
+		{
 			
 			$fields = 'key,status,summary,start,end,timeoriginalestimate,timespent,labels,assignee,created,issuetype,issuelinks,emailAddress,aggregatetimespent,subtasks';
 			
@@ -387,8 +403,9 @@ class Query
 		$this->jiracred = $jira;
 		//echo "C ".$jira->url.EOL;
 		Jirarest::SetUrl($jira->url,$jira->user,$jira->pass);
-		
+
 		$njql = $this->QueryPreProcess($project,$jql);
+
 		if (is_object($njql))
 		{
 			$this->njql = $njql->query;
@@ -535,21 +552,47 @@ class GanProject
 	private $isarchived=0;
 	private $weekend =  'Tue';
 	private $additional_jira=array();
+	public $implements = 'implemented by';
 	
+	function LoadConfiguration()
+	{
+		global $CONF;
+		
+		$obj = new Obj();
+		$conffile = explode(":",$this->jira->url)[1];
+		$conffile = substr($conffile,2);
+		if(!file_exists(getcwd()."//".$conffile))
+		{
+				echo "Configuration for $conffile not found".EOL;
+				echo "Exiting".EOL;
+				exit();
+		}
+		$xmldata = file_get_contents(getcwd()."//".$conffile);
+		
+		$cdoc = new DOMDocument();
+		$cdoc->loadXML($xmldata);
+		
+		$links = $cdoc->documentElement->getElementsByTagName('link');	
+		foreach($links as $link)
+		{
+			$linkname =  $link->getAttribute('name');
+			$obj->$linkname = $link->getAttribute('value');
+		}
+		$custom_fields = $cdoc->documentElement->getElementsByTagName('custom_fields');	
+		foreach($custom_fields as $field)
+		{
+			$fieldname =  $field->getAttribute('name');
+			$obj->$fieldname = $field->getAttribute('value');
+		}
+		$CONF = $obj;
+	}
 	function __construct($doc)
 	{
 		$this->root=$doc->documentElement; 
 		$this->jira = new JiraInfo($this->root);
-		//$jirainfo = trim($this->root->getAttribute('webLink'));
-		//
-		//if($this->jiraurl == 'http://')||(($this->jiraurl == ''))
-		//{
-		//	echo 'Jira url missing'.EOL;
-		//}
+		$this->LoadConfiguration();
 		$this->name = $this->root->getAttribute('name');
-		
-		$descriptions = $this->root->getElementsByTagName('description');
-		
+		$descriptions = $this->root->getElementsByTagName('description');	
 		foreach($descriptions as $desc)
 		{
 			$data = explode("\n", $desc->textContent);
@@ -659,10 +702,6 @@ class GanProject
 	{
 		switch($name)
 		{
-			//case 'Jiraurl':
-			//	$this->jiraurl = $value;
-			//	$this->root->setAttribute('webLink',$value);
-			//	break;
 			case 'Name':
 				$this->name = $value;
 				$this->root->setAttribute('name',$value);
@@ -1631,11 +1670,10 @@ class GanTasks
 		$this->jira = $jira;
 		$xpath = new DOMXPath($doc);
 		$records = $xpath->query('/project/tasks/task');
-	
 		$extid = 1;
+	
 		foreach ($records as $i => $task) 
 		{
-
 			{
 				$start = $project->Start;
 				$end = $project->End;

@@ -1,8 +1,25 @@
 <?php
+
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 class Tj
 {
 	private $output;
 	private $filename = null;
+	private $folder = null;
 	function FlushProjectHeader($gan)
 	{
 		$today = GetToday("Y-m-d");
@@ -29,7 +46,7 @@ class Tj
 					$header =  'project acs "'.$gan->Name.'" '.$end;
 			}
 		}
-		$header = $header." +12m"."\n";
+		$header = $header." +48m"."\n";
 		$header = $header.'{ '."\n";
 		$header = $header.'   timezone "Asia/Karachi"'."\n";
 		$header = $header.'   timeformat "%Y-%m-%d"'."\n";
@@ -300,14 +317,14 @@ class Tj
 
 
 		# A list of tasks showing the resources assigned to each task.
-		taskreport development \"\" {
-		  headline \"Development - Resource Allocation Report\"
-		  columns bsi { title 'WBS' }, name, start, end, effort { title \"Work\" },
-				  duration, chart { \${TaskTip} scale day width 500 }
-		  timeformat \"%Y-%m-%d\"
-		  hideresource ~(isleaf() & isleaf_())
-		  sortresources name.up
-		}
+		#taskreport development \"\" {
+		#  headline \"Development - Resource Allocation Report\"
+		#  columns bsi { title 'WBS' }, name, start, end, effort { title \"Work\" },
+		#		  duration, chart { \${TaskTip} scale day width 500 }
+		#  timeformat \"%Y-%m-%d\"
+		#  hideresource ~(isleaf() & isleaf_())
+		#  sortresources name.up
+		#}
 
 		# A list of all tasks with the percentage completed for each task
 		#taskreport deliveries \"\" {
@@ -319,26 +336,26 @@ class Tj
 		#  scenarios plan, delayed
 		#}
 		# A list of all employees with their contact details.
-		resourcereport contactList \"\" {
-		  headline \"Contact list and duty plan\"
-		  columns name,
-				  email { celltext 1 \"[mailto:<-email-> <-email->]\" },
-				  chart { scale day }
-		  hideresource ~isleaf()
-		  sortresources name.up
-		  hidetask @all
-		}
+		#resourcereport contactList \"\" {
+		#  headline \"Contact list and duty plan\"
+		#  columns name,
+		#		  email { celltext 1 \"[mailto:<-email-> <-email->]\" },
+		#		  chart { scale day }
+		#  hideresource ~isleaf()
+		#  sortresources name.up
+		#  hidetask @all
+		#}
 
 		# A graph showing resource allocation. It identifies whether each
 		# resource is under- or over-allocated for.
-		resourcereport resourceGraph \"\" {
-		  headline \"Resource Allocation Graph\"
-		  columns no, name, effort, rate, weekly { \${TaskTip} }
-		  loadunit shortauto
+		#resourcereport resourceGraph \"\" {
+		#  headline \"Resource Allocation Graph\"
+		#  columns no, name, effort, rate, weekly { \${TaskTip} }
+		#  loadunit shortauto
 		  # We only like to show leaf tasks for leaf resources.
-		  hidetask ~(isleaf() & isleaf_())
-		  sorttasks plan.start.up
-		}";
+		#  hidetask ~(isleaf() & isleaf_())
+		#  sorttasks plan.start.up
+		#}";
 
 		return $header;
 	}
@@ -359,28 +376,22 @@ class Tj
 		//fclose($fp);
 		$this->output = $pheader.$lheader.$rheader.$fheader.$rpheader;
 	}
+	function __destruct()
+	{
+		$this->CleanUp($this->folder);
+	}
 	function Save($filename)
 	{
-		global $PLAN_FOLDER;
-		global $TJ_OUTPUT_FOLDER;
-		
-		if(!file_exists($TJ_OUTPUT_FOLDER))
-		{
-			if(!file_exists($PLAN_FOLDER))
-				mkdir($PLAN_FOLDER);
-			mkdir($TJ_OUTPUT_FOLDER);
-		}
 		$fp = fopen($filename, 'w');
 		fwrite($fp, $this->output);
 		fclose($fp);
 		$this->filename = $filename;
 	}
-	function ReadOutput()
+	function ReadOutput($project)
 	{
-		global $TJ_OUTPUT_FOLDER;
 		$dom = new DOMDocument();
 		libxml_use_internal_errors(true);
-		$html = file_get_contents($TJ_OUTPUT_FOLDER."//Overview.html");
+		$html = file_get_contents($project."//Overview.html");
 		// load html
 		$dom->loadHTML($html);
 		libxml_use_internal_errors(false);
@@ -446,15 +457,15 @@ class Tj
 		}
 		return $tasks;
 	}
-	function Execute($showoutput=0)
+
+	function Execute($showoutput,$folder)
 	{
 		$showoutput=1;
-		global $project_folder;
-		global $TJ_OUTPUT_FOLDER;
+		$this->folder = $folder;
 		if($this->filename != null)
 		{
 			//." 2>&1"
-			$cmd = DGANTTFOLDER."\\tj3 -o ".$TJ_OUTPUT_FOLDER."  ".$this->filename." 2>&1";
+			$cmd = "tj3 -o ".$folder."  ".$this->filename." 2>&1";
 			if($showoutput == 0)
 			ob_start();
 			exec($cmd,$result);
@@ -479,23 +490,24 @@ class Tj
 	{
 		if(is_dir($target))
 		{
-			$files = glob( $target . '*', GLOB_MARK ); //GLOB_MARK adds a slash to directories returned
+			$files = glob( $target."/" . '*', GLOB_MARK ); //GLOB_MARK adds a slash to directories returned
 			foreach( $files as $file )
 			{
 				$this->delete_files( $file );      
 			}
 			if(is_dir($target))
+			{
 				rmdir( $target );
+			}
 		} 
 		elseif(is_file($target)) 
 		{
 			unlink( $target );  
 		}
 	}
-	function CleanUp()
+	function CleanUp($project)
 	{
-		global $TJ_OUTPUT_FOLDER;
-		$this->delete_files($TJ_OUTPUT_FOLDER);
+		$this->delete_files($project);
 		
 	}
 }

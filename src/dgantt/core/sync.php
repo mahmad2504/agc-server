@@ -1,4 +1,20 @@
 <?php
+
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+AGC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 require_once('common.php');
 //require_once('common.php');
 
@@ -467,9 +483,9 @@ class Sync
 		foreach($duplicates as $task)
 		{
 			if($task->JiraId == null)
-				echo '<p> Delete '.$task->Name." from plan. It looks misplaced in plan as per Jira".'</p>';
+				echo '<p>'.$task->Name." Appearing in multiple queries".'</p>';
 			else
-				echo '<p> Delete '.$task->JiraId." from plan . It looks misplaced in plan as per Jira".'</p>';
+				echo '<p>'.$task->JiraId." Appearing in multiple queries".'</p>';
 		}
 		foreach($queries as $query)
 		{

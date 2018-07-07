@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-$depth=0;
-$BASEFOLDER ="";
+$depth=2;
+$BASEFOLDER ="agc-server/src";
 $BACKUPFOLDER='u:/dgantt-backup/';
 ?>

@@ -24,6 +24,7 @@ $TJ_FILE = $TJ_OUTPUT_FOLDER."/plan.tjp";
 $JS_GANTT_FILE = $PLAN_FOLDER."/jsgantt.xml";
 $LOG_FOLDER = $PLAN_FOLDER."/logs/";
 $GAN_SERIALIZED_FILE = $PLAN_FOLDER."/gan.seralized";
+$CONF;
 
 function ResetGlocals()
 {
