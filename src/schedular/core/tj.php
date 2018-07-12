@@ -352,7 +352,7 @@ class Tj
 		#  headline \"Resource Allocation Graph\"
 		#  columns no, name, effort, rate, weekly { \${TaskTip} }
 		#  loadunit shortauto
-		  # We only like to show leaf tasks for leaf resources.
+	       # We only like to show leaf tasks for leaf resources.
 		#  hidetask ~(isleaf() & isleaf_())
 		#  sorttasks plan.start.up
 		#}";

@@ -23,6 +23,35 @@ $TJ_OUTPUT_FOLDER = $PLAN_FOLDER."/tj";
 $TJ_FILE = $TJ_OUTPUT_FOLDER."/plan.tjp";
 $JS_GANTT_FILE = $PLAN_FOLDER."/jsgantt.xml";
 $LOG_FOLDER = $PLAN_FOLDER."/logs/";
+$BASELINE_FOLDER = $PLAN_FOLDER."/baselines/";
+
+if(isset($baseline))
+{
+	$baseline = Date('Y-m-d',strtotime($baseline));
+	global $BASELINE_FOLDER;
+	if(file_exists($BASELINE_FOLDER))
+	{
+		$folders  = ReadDirectory($BASELINE_FOLDER);
+		if(count($folders)>0)
+		{
+			$count = 0;
+			foreach($folders as $folder)
+			{
+				if($folder == $baseline)
+					$count++;
+			}
+			if($count == 0)
+				die("Baseline not found");
+		}
+		else
+			die("Baseline not found");
+	}
+	else 
+		die("Baseline not found");
+}
+
+
+
 $GAN_SERIALIZED_FILE = $PLAN_FOLDER."/gan.seralized";
 $CONF;
 

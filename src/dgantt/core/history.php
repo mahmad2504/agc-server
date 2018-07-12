@@ -22,6 +22,16 @@ class History
 	private $folder;
 	public $gan;
 	private $data;
+	function GetToday($format)
+	{
+		global $baseline;
+		
+		if(isset($baseline))
+		{
+			return $baseline;
+		}
+		return GetToday($format);
+	}
 	function __construct($folder)
 	{
 		//echo "Memory used before History = ".memory_get_usage().EOL;
@@ -181,8 +191,27 @@ class History
 			if(($file != ".") and ($file != "..")) 
 			{
 				//echo $file." ".is_dir($directory.$file).EOL;
-				//if( !is_dir($file))
+				//if( !is_dir($file))				
+				$date = $this->GetToday('Y-m-d');
+				if( strtotime($file) < strtotime($date))
+				{
 				$files[] = $directory.$file; // put in array.
+					//echo $directory.$file.EOL;
+				}
+				else if( strtotime($file) == strtotime($date))
+				{
+					global $BASELINE_FOLDER;
+					$bl_datafile = $BASELINE_FOLDER."/".$date."/logdata";
+					if(file_exists($bl_datafile))
+					{
+						$files[] = $bl_datafile;
+					}
+					else
+						$files[] = $directory.$file; // put in array.
+					//echo $directory.$file.EOL;
+				}
+				
+			    //echo $directory.$file.EOL;
 			}  
 		}
 		//echo count($files).EOL;
@@ -230,7 +259,7 @@ class History
 			}
 			else
 			{   // check if it is todays data then no tag means the milestone is no more existant so no data is valid anymore
-				$today = GetToday("Y-m-d");
+				$today = $this->GetToday("Y-m-d");
 				if(strtotime($today) == strtotime($name))
 					$returndata = array(); // remove all data and refresh
 			}	
@@ -275,7 +304,7 @@ class History
 			//echo $var," ".$modulo.EOL;
 			if($counter >= 1)
 			{
-				if(strtotime(date("Y/m/d")) != strtotime(basename($filename)))
+				if(strtotime($this->GetToday('Y-m-d')) != strtotime(basename($filename)))
 				{
 					$counter = $counter-1;
 					continue;

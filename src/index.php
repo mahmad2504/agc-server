@@ -16,7 +16,7 @@ along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-include('path.php');
+include('conf.php');
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 define('DGANTTFOLDER','dgantt');
@@ -35,6 +35,7 @@ define('TIMESHEET_SCRIPT',DGANTTFOLDER.'/modules/timesheet/index.php');
 define('AUDIT_SCRIPT',DGANTTFOLDER.'/modules/audit/index.php');
 define('REPORT_SCRIPT',DGANTTFOLDER.'/modules/report/index.php');
 define('COMMENT_SCRIPT',DGANTTFOLDER.'/modules/comment/index.php');
+define('BASELINE_SCRIPT',DGANTTFOLDER.'/modules/baseline/index.php');
 
 define('COMMON',DGANTTFOLDER.'/core/common.php');
 define('GLOBALS',DGANTTFOLDER.'/core/globals.php');
@@ -51,24 +52,35 @@ if($plan == 'none')
 	define('CALENDAR_FOLDER', "../../".DGANTTFOLDER."/modules/calendar/");
 	define('JSGANTT_FOLDER', "../../".DGANTTFOLDER."/modules/gantt/");
 	define('DASHBOARD_FOLDER', "../../".DGANTTFOLDER."/modules/dashboard/");
+	if(isset($baseline))
+	{
+		define('JSGANTT_FILE', "../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/baselines/".$baseline."/jsgantt.xml?v=1");
+		//define('GANTT_PLAN_LINK', "../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/baselines/".$baseline."/jsgantt.xml?v=1");
+	}
+	else
 	define('JSGANTT_FILE', "../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/jsgantt.xml?v=1");
 	define('STATUS_FOLDER', "../../".DGANTTFOLDER."/modules/status/");
 	define('TIMESHEET_FOLDER', "../../".DGANTTFOLDER."/modules/timesheet");
 	define('AUDIT_FOLDER', "../../".DGANTTFOLDER."/modules/audit");
 	define('REPORT_FOLDER', "../../".DGANTTFOLDER."/modules/report");
 	define('COMMENT_FOLDER', "../../".DGANTTFOLDER."/modules/comment");
+	define('BASELINE_FOLDER', "../../".DGANTTFOLDER."/modules/baseline");
 }
 else
 {
 	define('CALENDAR_FOLDER', "../../../".DGANTTFOLDER."/modules/calendar/");
 	define('JSGANTT_FOLDER', "../../../".DGANTTFOLDER."/modules/gantt/");
 	define('DASHBOARD_FOLDER', "../../../".DGANTTFOLDER."/modules/dashboard/");
+	if(isset($baseline))
+		define('JSGANTT_FILE', "../../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/baselines/".$baseline."/jsgantt.xml?v=1");
+	else
 	define('JSGANTT_FILE', "../../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/jsgantt.xml?v=1");
 	define('TIMESHEET_FOLDER', "../../../".DGANTTFOLDER."/modules/timesheet");
 	define('STATUS_FOLDER', "../../../".DGANTTFOLDER."/modules/status/");
 	define('AUDIT_FOLDER', "../../../".DGANTTFOLDER."/modules/audit");
 	define('REPORT_FOLDER', "../../../".DGANTTFOLDER."/modules/report");
 	define('COMMENT_FOLDER', "../../../".DGANTTFOLDER."/modules/comment");
+	define('BASELINE_FOLDER', "../../../".DGANTTFOLDER."/modules/baseline");
 }
 
 //$filename = 'core\\cmd'.strtolower($cmd).".php";
@@ -93,6 +105,9 @@ else
 
 switch(strtolower($cmd))
 {
+	case 'baseline':
+		require_once(BASELINE_SCRIPT);
+		break;
 	case 'comment':
 		require_once(COMMENT_SCRIPT);
 		break;

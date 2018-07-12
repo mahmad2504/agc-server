@@ -71,6 +71,7 @@ class Sync
 		global $GAN_FILE;
 		global $FILTER_FILE;
 		global $QUERY_FILE ;
+		global $SCHD_SERVER;
 		try 
 		{
 			$gan = new Gan($GAN_FILE,$rebuild);
@@ -106,7 +107,7 @@ class Sync
 			"GAN"  => serialize($gan),
 			"PROJECT" => basename($GAN_FILE)
 		);
-		$result = CallAPI("POST","http://137.202.158.162/restapi/index.php",http_build_query($data));
+		$result = CallAPI("POST",$SCHD_SERVER."/index.php",http_build_query($data));
 		
 		$data = json_decode($result);
 		if($data == null)
@@ -178,7 +179,31 @@ class Sync
 		$gan->Save();
 		$this->SaveGantt($gan);
 		$this->SaveLog($gan);
+		global $save;
+
+		if($save == 1)
+		{
+			global $BASELINE_FOLDER;
+			global $JS_GANTT_FILE;
+			global $GAN_SERIALIZED_FILE;
+			global $LOG_FOLDER;
+			global $GAN_FILE;
+			
+			//echo $BASELINE_FOLDER.EOL;
+			if(!file_exists($BASELINE_FOLDER))
+				mkdir($BASELINE_FOLDER);
 		
+			$base = $BASELINE_FOLDER."/".GetToday('Y-m-d');
+			if(!file_exists($base))
+				mkdir($base);
+			copy($JS_GANTT_FILE,$base."/jsgantt.xml");
+			$ganname = basename($GAN_FILE);
+			copy($GAN_FILE,$base."/".$ganname);
+			//echo $GAN_FILE."-->".$base."/".$ganname.EOL;
+			copy($LOG_FOLDER."/".GetToday('Y-m-d'),$base."/logdata");
+			echo "<h3>Base line saved</h3>";
+			
+		}
 	
 		//global $TJ_FILE;
 		//echo $TJ_FILE;
@@ -225,6 +250,7 @@ class Sync
 	}
 	function SaveGantt($gan)
 	{
+		global $LOG_FOLDER;
 		$tasks =  $gan->TaskTree;
 		$jsgantt = new JSGantt($tasks);
 		$calendar = implode(",",$gan->Holidays);
@@ -234,6 +260,10 @@ class Sync
 
 		global $JS_GANTT_FILE;
 		$jsgantt->Save($JS_GANTT_FILE,$gan->Jira->url,$this->End,$calendar);
+		
+		
+		//$today = GetToday("Y-m-d");
+		//$jsgantt->Save($LOG_FOLDER."//jsgantt.xml",$gan->Jira->url,$this->End,$calendar);
 	}
 	function SyncTask($gan,$jtask,$task)
 	{

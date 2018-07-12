@@ -60,6 +60,11 @@ echo $project_name.EOL;
 echo $subplan.EOL;
 echo $cmd.EOL;
 */
+if(!isset($save))
+	$save = 0;
+else
+	$save = 1;
+
 
 if(!isset($cached))
 	$cached = 0;

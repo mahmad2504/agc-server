@@ -186,8 +186,8 @@ class Analytics
 		
 		if($this->Progress < 100)
 		{
-			if( strtotime(GetToday('Y-m-d')) > strtotime($this->TrackingEndDate) )
-				$this->extended_end_tracking = GetToday('Y-m-d');
+			if( strtotime($this->GetToday('Y-m-d')) > strtotime($this->TrackingEndDate) )
+				$this->extended_end_tracking = $this->GetToday('Y-m-d');
 		}
 		else
 		{
@@ -214,7 +214,7 @@ class Analytics
 		$this->working_days = $working_days;
 		// Count days cosumed /////////////////////////////////////////////////////////////
 		$start = $this->TrackingStartDate;
-		$end = GetToday('Y-m-d');//, strtotime('+1 day', strtotime(date('Y-m-d'))));
+		$end = $this->GetToday('Y-m-d');//, strtotime('+1 day', strtotime(date('Y-m-d'))));
 		if( strtotime($end) > strtotime($this->TrackingEndDate) )
 			$end = $this->TrackingEndDate;
 		$endp1 = date('Y-m-d',strtotime('+1 day', strtotime($end)));
@@ -227,7 +227,7 @@ class Analytics
 		/// Count Days Remaning ///////////////////////////////////////////////////////////////////
 		//$start = date('Y-m-d');
 		//$start = strtotime('+1 day', strtotime($start));
-		$start = date('Y-m-d',strtotime('+1 day', strtotime(date('Y-m-d'))));
+		$start = date('Y-m-d',strtotime('+1 day', strtotime($this->GetToday('Y-m-d'))));
 		
 		if( strtotime($start) < strtotime($this->TrackingStartDate) )
 			$start = $this->TrackingStartDate;
@@ -392,7 +392,7 @@ class Analytics
 				$d->committedduration = $last_committedduration_value;
 				$d->expectedduration = $last_expectedduration_value;
 				// Data is not found so interpolate
-				if( strtotime($d->date) <= strtotime(GetToday('Y-m-d')))
+				if( strtotime($d->date) <= strtotime($this->GetToday('Y-m-d')))
 				{
 					//if( ($last_timespent_value+$delta) < $current_timespent_value)
 					//{
@@ -528,9 +528,9 @@ class Analytics
 		
 		$worklog = new Obj();
 		$worklog->Title = 'Project';
-		if(array_key_exists(date('Y-m-d'),$msdata))
+		if(array_key_exists($this->GetToday('Y-m-d'),$msdata))
 		{
-			$current= $msdata[date('Y-m-d')];
+			$current= $msdata[$this->GetToday('Y-m-d')];
 		$worklog->Title = $current->Title;
 		}
 		//var_dump($msdata);
@@ -726,7 +726,7 @@ class Analytics
 		$current = $msdata[$date];
 		//$this->GetResourceUtilization($current);
 		
-		$date= date('Y-m-d', strtotime('-7 days'));
+		$date= date('Y-m-d', strtotime('-7 days',strtotime($this->GetToday('Y-m-d'))));
 		$lastweek =  null;
 		if(array_key_exists($date,$msdata))
 		{
@@ -778,6 +778,14 @@ class Analytics
 		//echo $current->Progress." - ".$lastweek->Progress.EOL;
 		//var_dump($robj);
 		//return $robj;
+	}
+	function GetToday($format)
+	{
+		global $baseline;
+		if(isset($baseline))
+			return $baseline;
+		
+		return GetToday($format);
 	}
 	function __construct($tag)
 	{

@@ -60,7 +60,6 @@ require_once('gan.php');
 require_once('jirarest.php');
 require_once('jira.php');
 require_once('filter.php');
-require_once('tj.php');
 require_once('jsgantt.php');
 require_once('history.php');
 require_once('plan.php');
