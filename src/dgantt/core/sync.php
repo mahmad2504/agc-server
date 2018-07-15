@@ -336,7 +336,37 @@ class Sync
 		//echo "False";
 		return False;
 	}
-
+	function SortByJiraId($jiratasks,$rows)
+	{
+		if($rows == null)
+			return $jiratasks;
+		//var_dump($jiratasks);
+		$rjtasks =  new Obj();
+		foreach($rows as $row)
+		{
+			//echo $row->taskid.EOL;
+			foreach($jiratasks as $jtask)
+			{
+				if($jtask->id == $row->taskid)
+				{
+					//echo $jtask->key.EOL;
+					//$rjtasks[$jtask->key] = $jtask;
+					$key = $jtask->key;
+					$rjtasks->$key = $jtask;
+					break;
+				}
+				
+			}
+		}
+		//foreach($jiratasks as $key=>$value)
+		//{
+		//	if(!isset($rjtasks->$key))
+		//	{
+		//		echo $key."Should be removed";
+		//	}
+		//}
+		return $rjtasks;
+	}
 	function SyncFromJira($gan)
 	{
 		global $board;
@@ -372,6 +402,14 @@ class Sync
 			$t= $query->Jiratasks;
 			if($t != null)
 			{
+				if($query->rows != null)
+				{
+					//var_dump($query->Jiratasks);
+					$stasks = $this->SortByJiraId($query->Jiratasks,$query->rows);
+					//var_dump($stasks);
+					$jtasksa[] = $stasks;
+				}
+				else
 				$jtasksa[] = $query->Jiratasks;
 			//foreach($query->Jiratasks as $key=>$jtask)
 				//	echo $key.EOL;
@@ -417,8 +455,10 @@ class Sync
 							if(count($tagparts)==2)
 							{
 								if(is_numeric($tagparts[1]))
+								{
 									echo "<font color='red'>".$task->Tags[0]." Should be removed from plan...</font>".EOL;
 							}
+						}
 						}
 						
 					}

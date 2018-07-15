@@ -17,6 +17,7 @@ along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 
 class Query
 {
+	public $rows=null;
 	private $task;
 	private $jql;
 	private $njql;
@@ -385,11 +386,17 @@ class Query
 				}
 				$query=$query.")";
 				if($jirainfo == null)
-					return $query;
+				{
+					$obj = new Obj();
+					$obj->query = $query;
+					$obj->rows = $rows;
+					return $obj;
+				}
 			
 				$obj = new Obj();
 				$obj->query = $query;
 				$obj->jiracred = $jirainfo;
+				$obj->rows = $rows;
 				return $obj;
 			}
 			else
@@ -408,8 +415,16 @@ class Query
 
 		if (is_object($njql))
 		{
+			if(isset($njql->rows))
+			{
+				$this->njql = $njql->query;
+				$this->rows = $njql->rows;
+			}
+			else
+			{
 			$this->njql = $njql->query;
 			$this->jiracred = $njql->jiracred;
+		}
 		}
 		else
 			$this->njql = $njql;
