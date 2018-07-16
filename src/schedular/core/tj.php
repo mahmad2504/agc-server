@@ -458,7 +458,7 @@ class Tj
 		return $tasks;
 	}
 
-	function Execute($showoutput,$folder)
+	function Execute($showoutput,$folder,$debug=0)
 	{
 		$showoutput=1;
 		$this->folder = $folder;
@@ -474,6 +474,9 @@ class Tj
 			//foreach($result as $line)
 			//	echo $line.EOL;
 			//print_r($result)."--".EOL;
+			if($debug==1)
+				var_dump($result);
+			
 			$pos1 = strpos($result[0], 'Error');
 			//echo $pos1.EOL;
 			if ($pos1 != false)
