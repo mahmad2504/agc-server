@@ -25,7 +25,6 @@ class History
 	function GetToday($format)
 	{
 		global $baseline;
-		
 		if(isset($baseline))
 		{
 			return $baseline;
@@ -201,13 +200,21 @@ class History
 				else if( strtotime($file) == strtotime($date))
 				{
 					global $BASELINE_FOLDER;
+					global $baseline;
+		
 					$bl_datafile = $BASELINE_FOLDER."/".$date."/logdata";
+					if(isset($baseline))
+					{
 					if(file_exists($bl_datafile))
 					{
 						$files[] = $bl_datafile;
 					}
 					else
 						$files[] = $directory.$file; // put in array.
+					}
+					else
+						$files[] = $directory.$file; // put in array.
+					
 					//echo $directory.$file.EOL;
 				}
 				
