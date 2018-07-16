@@ -367,6 +367,60 @@ class Sync
 		//}
 		return $rjtasks;
 	}
+	function FindParentTask($key,$jtasks,$rows)
+	{
+		$levels = array();
+		$levels[0] = null;
+		if(isset($jtasks->$key))
+		{
+			$jtask = $jtasks->$key;
+			foreach($rows as $row)
+			{
+				$levels[$row->level] = $row;
+				if($row->taskid == $jtask->id)
+				{
+					if($row->level == 1)
+						return null;
+					$prow = $levels[$row->level-1];
+					foreach($jtasks as $key=>$jtask)
+					{
+						if($jtask->id == $prow->taskid)
+							return $key;
+					}
+
+				}
+			}
+			
+			
+		}
+		else
+			return null;
+		
+	}
+	function ValidateStructure($query)
+	{
+		//echo $query->jql.EOL;
+		$baselevel = $query->Task->Level;
+		foreach($query->rows as $row)
+		{
+			$rowtid = $row->taskid;
+	
+			foreach($query->Jiratasks as $key=>$jtask)
+			{
+				//echo $key.EOL;
+				//echo $rowtid." ".$jtask->id.EOL;
+				if($rowtid == $jtask->id)
+				{
+					if( $row->level != ($jtask->Gtask->Level - $baselevel))
+					{
+						echo "Warning: ".$jtask->Gtask->Name."(".$key.")@ ".$jtask->Gtask->Id." misplaced in jira structure";
+					}
+					break;
+				}
+			
+			}
+		}
+	}
 	function SyncFromJira($gan)
 	{
 		global $board;
@@ -383,7 +437,8 @@ class Sync
 		//$count = count(get_object_vars($jtasks));
 		//echo $count;
 		$queries = $gan->Queries;	
-		usort($queries,"cmp2");
+		//echo count($queries ).EOL;
+		//usort($queries,"cmp2");
 		if($board != 'project')
 		{
 			$tag = urldecode($board);
@@ -407,9 +462,8 @@ class Sync
 					//var_dump($query->Jiratasks);
 					$stasks = $this->SortByJiraId($query->Jiratasks,$query->rows);
 					//var_dump($stasks);
-					$jtasksa[] = $stasks;
+					$query->Jiratasks = $stasks;
 				}
-				else
 				$jtasksa[] = $query->Jiratasks;
 			//foreach($query->Jiratasks as $key=>$jtask)
 				//	echo $key.EOL;
@@ -418,6 +472,7 @@ class Sync
 			//	$jtask->handled = false;
 			//}
 		}
+		$dups = array();
 		foreach($gan->TaskList as $task)
 		{
 			//if(!$task->IsParent)
@@ -437,10 +492,13 @@ class Sync
 							//	echo $key." ".$jtask->timespent." ".$jtask->aggregatetimespent.EOL;
 							if(isset($jtask->handled)&&($task->IsParent==0))
 							{
-								echo $key. " Referred in Multiple milstones ".EOL;
+								$dups[$key] = $task->Name;
+								//echo $key. " Appearing in Multiple milstones ".$task->Parenttask->Id.EOL;
 							}
+							//echo $jtasks->$key." marked handled".EOL;
 							$jtask->handled = true;
 							$task->handled = 1;
+							//echo $task->Name." mark handled".EOL;
 							$this->SyncTask($gan,$jtask,$task);
 						}
 						else
@@ -456,7 +514,7 @@ class Sync
 							{
 								if(is_numeric($tagparts[1]))
 								{
-									echo "<font color='red'>".$task->Tags[0]." Should be removed from plan...</font>".EOL;
+									echo "Warning: ".$task->Name." @".$task->Id." is misplaced and must be removed from plan".EOL;
 							}
 						}
 						}
@@ -465,6 +523,20 @@ class Sync
 				}
 			}
 			
+		}
+		foreach($dups as $key=>$name)
+		{
+			echo "Error: ".$name." appearing multiple times @ ";
+			$delim = "";
+			foreach($gan->TaskList as $task)
+			{
+				if($task->JiraId == $key)
+				{
+					echo $delim.$task->Id;
+					$delim = ",";
+				}
+			}
+			echo EOL;
 		}
 		foreach($jtasksa as $jtasks)
 		{
@@ -476,19 +548,45 @@ class Sync
 					//echo $jtask->query->Task->Name.EOL;
 					//echo var_dump($jtask->query->Task->DOMElement).EOL;
 					
+				        //echo  $jtask->key.EOL;
+					//var_dump($jtask->query->rows);
+					$notstructuretask = 0;
+					if($jtask->query->rows != null)
+					{
+						$ptask_key = $this->FindParentTask($key,$jtasks,$jtask->query->rows);	
+						if($ptask_key == null)
+						{
 					$task = $gan->AddTask($jtask->summary,$key,$jtask->query->Task);
-					
+						}
+						else
+						{
+							foreach($gan->TaskList as $ta)
+							{
+								if($ta->JiraId == $ptask_key)
+								{
+									$task = $gan->AddTask($jtask->summary,$key,$ta);
+								}
+							}
+						}
+					}
+					else
+					{
+						$task = $gan->AddTask($jtask->summary,$key,$jtask->query->Task);
+						$notstructuretask = 1;
+					}
+					if($notstructuretask)
+					{
 					if(stristr($jtask->issuetype,"workpackage")!=NULL)
 					{
 						//echo $jtask->issuetype.EOL;
 						$task->Query = 'implements';
 					}
-					if(stristr($jtask->issuetype,"milestone")!=NULL)
+						else if(stristr($jtask->issuetype,"milestone")!=NULL)
 					{
 						//echo $jtask->issuetype.EOL;
 						$task->Query = 'implements';
 					}
-					if(stristr($jtask->issuetype,"project")!=NULL)
+						else if(stristr($jtask->issuetype,"project")!=NULL)
 					{
 						//echo $jtask->issuetype.EOL;
 						$task->Query = 'implements';
@@ -507,7 +605,7 @@ class Sync
 						//echo $jtask->issuetype.EOL;
 						$task->Query = 'issuesinepic';
 					}
-					
+					}
 					$jtask->handled =  true;
 					$this->SyncTask($gan,$jtask,$task);
 					foreach($jtasksa as $jtasksn)
@@ -552,11 +650,27 @@ class Sync
 		}
 		foreach($duplicates as $task)
 		{
-			if($task->JiraId == null)
-				echo '<p>'.$task->Name." Appearing in multiple queries".'</p>';
-			else
-				echo '<p>'.$task->JiraId." Appearing in multiple queries".'</p>';
+
+		    echo "Warning: ".$task->Name." Appearing in multiple queries @ ";
+			$delim = "";
+											
+			foreach($queries as $query)
+			{
+					$key = $task->JiraId;
+					if(isset($query->Jiratasks->$key))
+					{
+						echo $delim.$query->Task->Id;
+						$delim = ",";
+					}
+			}
+			echo EOL;
 		}
+		foreach($queries as $query)
+		{
+			if($query->IsStructure)
+				$this->ValidateStructure($query);
+		}
+		return;
 		foreach($queries as $query)
 		{
 			$jtasks = $query->Jiratasks;

@@ -25,6 +25,7 @@ class Query
 	private $filterfile;
 	private $rebuild;
 	private $jiracred;
+	private $isstructure=0;
 	
 	function multiexplode ($delimiters,$string) {
 
@@ -385,6 +386,7 @@ class Query
 					$del = ",";
 				}
 				$query=$query.")";
+				$this->isstructure = 1;
 				if($jirainfo == null)
 				{
 					$obj = new Obj();
@@ -486,6 +488,8 @@ class Query
 	{
 		switch($name)
 		{
+			case 'IsStructure':
+				return $this->isstructure;
 			case 'Task':
 				return $this->task;
 			case 'jql';
