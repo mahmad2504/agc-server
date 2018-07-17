@@ -26,14 +26,15 @@ along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once('cparams.php');
 
-$organization_folder = DGANTTFOLDER."/data/".$organization;
+$organization_folder = DATA_FOLDER."/data/".$organization;
 if (!is_dir($organization_folder)) {
    trace("Organization ".$organization." ".' Does not exist','MSG');
    exit();
 }
 
 $project_folder = $organization_folder."/".$project_name;
-$gan_folder = DGANTTFOLDER."/projects/".$organization."/".$project_name;
+$gan_folder = DATA_FOLDER."/projects/".$organization."/".$project_name;
+
 
 if (!is_dir($project_folder)) {
    trace("Project ".$project_name." ".' Does not exist','MSG');

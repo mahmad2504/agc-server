@@ -52,13 +52,6 @@ if($plan == 'none')
 	define('CALENDAR_FOLDER', "../../".DGANTTFOLDER."/modules/calendar/");
 	define('JSGANTT_FOLDER', "../../".DGANTTFOLDER."/modules/gantt/");
 	define('DASHBOARD_FOLDER', "../../".DGANTTFOLDER."/modules/dashboard/");
-	if(isset($baseline))
-	{
-		define('JSGANTT_FILE', "../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/baselines/".$baseline."/jsgantt.xml?v=1");
-		//define('GANTT_PLAN_LINK', "../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/baselines/".$baseline."/jsgantt.xml?v=1");
-	}
-	else
-	define('JSGANTT_FILE', "../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/jsgantt.xml?v=1");
 	define('STATUS_FOLDER', "../../".DGANTTFOLDER."/modules/status/");
 	define('TIMESHEET_FOLDER', "../../".DGANTTFOLDER."/modules/timesheet");
 	define('AUDIT_FOLDER', "../../".DGANTTFOLDER."/modules/audit");
@@ -71,10 +64,6 @@ else
 	define('CALENDAR_FOLDER', "../../../".DGANTTFOLDER."/modules/calendar/");
 	define('JSGANTT_FOLDER', "../../../".DGANTTFOLDER."/modules/gantt/");
 	define('DASHBOARD_FOLDER', "../../../".DGANTTFOLDER."/modules/dashboard/");
-	if(isset($baseline))
-		define('JSGANTT_FILE', "../../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/baselines/".$baseline."/jsgantt.xml?v=1");
-	else
-	define('JSGANTT_FILE', "../../../".DGANTTFOLDER."/data/".$organization."/".$project_name."/".$subplan."/jsgantt.xml?v=1");
 	define('TIMESHEET_FOLDER', "../../../".DGANTTFOLDER."/modules/timesheet");
 	define('STATUS_FOLDER', "../../../".DGANTTFOLDER."/modules/status/");
 	define('AUDIT_FOLDER', "../../../".DGANTTFOLDER."/modules/audit");
@@ -82,6 +71,12 @@ else
 	define('COMMENT_FOLDER', "../../../".DGANTTFOLDER."/modules/comment");
 	define('BASELINE_FOLDER', "../../../".DGANTTFOLDER."/modules/baseline");
 }
+
+if(isset($baseline))
+	define('JSGANTT_FILE', JSGANTT_FOLDER."getxml.php?organization=".$organization."&project_name=".$project_name."&subplan=".$subplan."&baseline=".$baseline);
+else
+	define('JSGANTT_FILE', JSGANTT_FOLDER."getxml.php?organization=".$organization."&project_name=".$project_name."&subplan=".$subplan);
+
 
 //$filename = 'core\\cmd'.strtolower($cmd).".php";
 

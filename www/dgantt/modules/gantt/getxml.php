@@ -1,5 +1,4 @@
 <?php
-
 /*
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
@@ -15,9 +14,18 @@ You should have received a copy of the GNU General Public License
 along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-$depth=0;
-$BASEFOLDER ="";
-$BACKUPFOLDER='u:/dgantt-backup/';
-$SCHD_SERVER = 'http://agc/schedular';
-define('DATA_FOLDER',"../../agc-data/"); // end backslash is must
+
+$organization=$_GET['organization'];
+$project_name=$_GET['project_name'];
+$subplan=$_GET['subplan'];
+if(isset($_GET['baseline']))
+{
+	$baseline=$_GET['baseline'];
+	$path = "../../../../../agc-data/data/".$organization."/".$project_name."/".$subplan."/baselines/".$baseline."/jsgantt.xml";
+}
+else
+	$path = "../../../../../agc-data/data/".$organization."/".$project_name."/".$subplan."/jsgantt.xml";
+
+echo file_get_contents($path);
+
 ?>

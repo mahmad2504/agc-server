@@ -2343,9 +2343,11 @@ JSGantt.parseXML=function(pFile,pGanttVar)
 	xhttp.open('GET', pFile, false);
 	xhttp.setRequestHeader('Cache-Control', 'no-cache');
 	xhttp.send(null);
-	var xmlDoc=xhttp.responseXML;
-
-	JSGantt.AddXMLTask(pGanttVar, xmlDoc);
+	var data = xhttp.responseText;
+	JSGantt.parseXMLString(data,pGanttVar);
+	
+	//var xmlDoc=xhttp.responseXML;
+	//JSGantt.AddXMLTask(pGanttVar, data);
 };
 
 JSGantt.parseXMLString=function(pStr,pGanttVar)
