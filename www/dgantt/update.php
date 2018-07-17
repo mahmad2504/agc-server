@@ -1,14 +1,12 @@
 <?php
 
 include('backup.php');
-include('core\pparse.php');
-include('..\path.php');
-define('PROJECTS','data\\');
+include('core/pparse.php');
+include('../conf.php');
+define('PROJECTS','../'.DATA_FOLDER.'/data/');
 ini_set('default_socket_timeout', 60*10);
-if(strlen($BASEFOLDER)>0)
-	$url='http://localhost/'.$BASEFOLDER."/";
-else
-	$url='http://localhost/';
+
+$url='http://localhost/';
 
 
 class Obj{
@@ -63,17 +61,25 @@ while(1)
 		foreach($company->projects as $project)
 		{
 			$cmd = $url.$company->Name."/".$project->Name.'/sync'."?env=".$env.$rebuilds;		
-			//echo $cmd.EOL;
+			echo $cmd.EOL;
 			echo file_get_contents($cmd);
-			$cmd = $url.$company->Name."/".$project->Name.'/auditreport'."?env=".$env.$rebuilds;
-			file_get_contents($cmd);
+			//$cmd = $url.$company->Name."/".$project->Name.'/auditreport'."?env=".$env.$rebuilds;
+			//file_get_contents($cmd);
 		}
 	}
 	$now=false;
 	if($env != 'web')
 	{
-		CreateZipFile('../dgantt','backup.zip');
+		if(!file_exists($BACKUPFOLDER.Date('Y-m-d').'.zip'))
+		{
+			CreateZipFile("../".DATA_FOLDER,'backup.zip');
 		$status = copyr('backup.zip', $BACKUPFOLDER.Date('Y-m-d').'.zip');
+	}
+		else if($rebuilds!='')
+		{
+			CreateZipFile("../".DATA_FOLDER,'backup.zip');
+			$status = copyr('backup.zip', $BACKUPFOLDER.Date('Y-m-d').'.zip');
+		}
 	}
 	else
 		break;
