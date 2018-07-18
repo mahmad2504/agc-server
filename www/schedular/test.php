@@ -1,5 +1,5 @@
 <?php
-$url = 'http://localhost/nnn/schedular/index.php';
+$url = 'http://localhost/schedular/index.php';
 //Initialise the cURL var
 $ch = curl_init();
 

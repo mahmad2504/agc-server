@@ -73,8 +73,8 @@ while(1)
 		if(!file_exists($BACKUPFOLDER.Date('Y-m-d').'.zip'))
 		{
 			CreateZipFile("../".DATA_FOLDER,'backup.zip');
-		$status = copyr('backup.zip', $BACKUPFOLDER.Date('Y-m-d').'.zip');
-	}
+		   $status = copyr('backup.zip', $BACKUPFOLDER.Date('Y-m-d').'.zip');
+	    }
 		else if($rebuilds!='')
 		{
 			CreateZipFile("../".DATA_FOLDER,'backup.zip');
