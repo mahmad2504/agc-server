@@ -39,6 +39,7 @@ class Analytics
 	public $twtasks;
 	public $grand_total;
 	public $msdata;
+	public $worklogs=array();
 	public function __get($name)
 	{
 		switch($name)
