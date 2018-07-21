@@ -563,6 +563,120 @@ class Analytics
 		}
 		return $worklogs;
 	}
+	private function FindOpenAirWorklogs($name)
+	{
+		$data =  array();
+		if($name == 'Ateeb')
+		{		
+			$worklog = new Obj();
+			$worklog->id ='12345';
+			$worklog->started = '2018-07-20';
+			$worklog->timespent = 1;
+			$worklog->comment = '';
+			$worklog->author = 'Ateeb';
+			$data[$worklog->started][] = $worklog;
+		}
+		return $data;
+	}
+	private function ProcessOpenAirWorklogs($resources,$worklogs)
+	{
+		foreach($resources as $resource)
+		{
+			if($resource->OpenAirName != null)
+			{
+				if( array_key_exists($resource->Name,$this->worklogs))
+				{
+					$this->worklogs[$resource->Name]['Open Air'] = array();
+
+				}
+				else
+				{
+					$this->worklogs[$resource->Name] =  array();
+					$this->worklogs[$resource->Name]['Open Air'] =  array();
+					
+				}
+				$this->worklogs[$resource->Name]['Open Air'] = $this->FindOpenAirWorklogs($resource->OpenAirName);
+				//var_dump($this->worklogs[$resource->Name]);
+			}
+		}
+		
+	}
+	private function ProcessAllWorkLogs($task)
+	{
+		//$date = date('m/d/Y', time());
+		
+		if ($task->Jtask  != null)
+		{
+			foreach($task->Jtask->worklogs as $worklog)
+			{
+				$worklog->key = $task->Jtask->key;
+				//echo $worklog->author." ".$worklog->started.EOL;
+				
+				if(array_key_exists($worklog->author,$this->worklogs))
+				{
+					//$this->worklogs[$worklog->author]->timespent += (float)$worklog->timespent;
+					//$this->worklogs[$worklog->author]->comment .= $worklog->comment
+					if(array_key_exists($worklog->started,$this->worklogs[$worklog->author]['Jira']))
+					{
+						$this->worklogs[$worklog->author]['Jira'][$worklog->started][] = $worklog;
+					}
+					else
+					{
+						$this->worklogs[$worklog->author]['Jira'][$worklog->started] =  array();
+						$this->worklogs[$worklog->author]['Jira'][$worklog->started][] = $worklog;
+					}
+				}
+				else  
+				{
+					$this->worklogs[$worklog->author] =  array();
+					$this->worklogs[$worklog->author]['Jira'] = array();
+					//$this->worklogs[$worklog->author]['Open Air'] = array();
+					
+					$this->worklogs[$worklog->author]['Jira'][$worklog->started] =  array();
+					$this->worklogs[$worklog->author]['Jira'][$worklog->started][] = $worklog;
+					
+					//$this->worklogs[$worklog->author]['Open Air'][$worklog->started] =  array();
+					//$this->worklogs[$worklog->author]['Open Air'][$worklog->started][] = $worklog;
+					
+					//$this->worklogs[$worklog->author]->timespent = 0.0;
+					//$this->worklogs[$worklog->author]->key = $task->Jtask->key;
+					//$this->worklogs[$worklog->started]->author = $worklog->author;
+					//$this->worklogs[$worklog->started]->comment = $worklog->comment;
+					//$this->worklogs[$worklog->started]->id = $worklog->id;
+				}
+			}
+		}
+		foreach($task->Children as $stask)
+		{
+			$this->ProcessAllWorkLogs($stask);
+		}
+	}
+	
+	
+	function GetDailyTimeSheet()
+	{
+		//OpenAirName
+		$resources = $tasks = $this->gan->Resources;
+		
+		end($this->msdata);
+		$key = key($this->msdata);
+		$task = $this->msdata[$key];
+		
+		$tasks = $this->gan->TaskListByExtId;
+
+		if( array_key_exists($task->ExtId, $tasks))
+			$task = $tasks[$task->ExtId];
+		else
+		{
+			echo $task->ExtId."Not found";
+			exit();
+		}
+		
+		$this->ProcessAllWorkLogs($task);
+		$this->ProcessOpenAirWorklogs($resources,$this->worklogs);
+		return $this->worklogs;
+		
+	}
 	function GetTimeSheet($msdata)
 	{
 		global $date;
