@@ -33,6 +33,12 @@ if(strlen($board)==0)
 $milestone = new Analytics($board);
 $worklogs = $milestone->WeeklyReport;
 $weekend = $milestone->Weekend;
+$wdate = $milestone->GetEndWeekDate($date);
+
+if($dayreport==1)
+	$msg = "Activity Report of ".$date;
+else
+	$msg = "Activity Report For the week ending ".$wdate;
 
 //foreach($worklogs as $worklog)
 //{
@@ -56,7 +62,7 @@ $weekend = $milestone->Weekend;
 
 <div id="thebox">
 	<h1 style="color:CornflowerBlue ;"><?php echo $worklogs[0]->Title; ?></h1>
-	<h2><?php echo "Activity Report For the week ending ".$date;?> </h2>
+	<h2><?php echo $msg;?> </h2>
   <div id="content">
 <?php
 	$lastkey='';
@@ -115,6 +121,20 @@ $weekend = $milestone->Weekend;
 	function ShowWorkLog($worklog)
 	{
 		global $lastkey;
+		global $dayreport;
+		global $date;
+		global $user;
+
+		if($dayreport==1)
+		{
+			if(strtotime($worklog->started) != strtotime($date))
+				return;
+		}
+		if(strlen($user) > 0)
+		{
+			if($user != $worklog->author)
+				return;
+		}
 		if($lastkey != $worklog->key)
 		{
 			echo '<h1>'.$worklog->keylink.'   '.$worklog->tasksummary.'</h1>';
@@ -122,7 +142,7 @@ $weekend = $milestone->Weekend;
 			$lastkey = $worklog->key;
 		}
 		echo '<p>'.$worklog->comment.'</p>';
-		echo '<p align="right"><a href="">'.$worklog->displayname.'</a> logged <a href="">'.$worklog->timespent.' day(s) </a></p>';
+		echo '<p align="right"><a href="">'.$worklog->displayname.'</a> logged <a href="">'.$worklog->timespent.' day(s) <br><span style="font-size: xx-small;">'.$worklog->started.'&nbsp&nbsp&nbsp</span></a></p>';
 		
 	}
 ?>

@@ -60,6 +60,22 @@ echo $project_name.EOL;
 echo $subplan.EOL;
 echo $cmd.EOL;
 */
+
+if(!isset($user))
+	$user= '';
+
+if(!isset($data))
+	$data = 0;
+else
+	$data = ($data == 0) ? 0:1;
+
+
+if(!isset($dayreport))
+	$dayreport = 0;
+else
+	$dayreport = ($dayreport == 0) ? 0:1;
+
+
 if(!isset($save))
 	$save = 0;
 else
