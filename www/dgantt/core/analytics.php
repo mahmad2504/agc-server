@@ -523,8 +523,8 @@ class Analytics
 	{
 		global $date;
 		$worklog = array();
-		$date = $this->GetEndWeekDate($date);
-		$this->BuildWeeklyActivity($msdata,$date);
+		$datew= $this->GetEndWeekDate($date);
+		$this->BuildWeeklyActivity($msdata,$datew);
 		
 		$worklog = new Obj();
 		$worklog->Title = 'Project';
@@ -548,7 +548,7 @@ class Analytics
 				//$friday = date('Y-M-d',strtotime('this friday', strtotime( $worklog->started)));
 				$wdate = $this->GetEndWeekDate($worklog->started);
 				$worklog->thisweek=0;
-				if(strtotime($date) == strtotime($wdate))
+				if(strtotime($datew) == strtotime($wdate))
 				{
 					$worklog->thisweek=1;
 					//echo $key.$worklog->displayname." ".$worklog->started."  ".$worklog->timespent."d".EOL;
