@@ -200,16 +200,12 @@
             create: function (element) {
                 // Initialize data with a json object or fetch via an xhr
                 // request depending on `settings.source`
-				console.log(typeof settings.source);
                 if (typeof settings.source !== "string") {
                     element.data = settings.source;
                     core.init(element);
                 } else {
-					console.log(settings.source);
                     $.getJSON(settings.source, function (jsData) {
                         element.data = jsData;
-						console.log("dddd");
-						console.log(element.data);
                         core.init(element);
                     });
                 }
@@ -219,7 +215,6 @@
             // Here we calculate the number of rows, pages and visible start
             // and end dates once the data is ready
             init: function (element) {
-				console.log("init");
                 element.rowsNum = element.data.length;
                 element.pageCount = Math.ceil(element.rowsNum / settings.itemsPerPage);
                 element.rowsOnLastPage = element.rowsNum - (Math.floor(element.rowsNum / settings.itemsPerPage) * settings.itemsPerPage);
@@ -268,7 +263,6 @@
                 // Scroll the grid to today's date
 				if (settings.scrollToToday) 
 				{
-					console.log(settings.scrollToToday);
                     var startPos = Math.round((settings.startPos / 1000 - element.dateStart / 1000) / 86400) - 2;
                     if ((startPos > 0 && element.hPosition !== 0)) {
                          if (element.scaleOldWidth) {

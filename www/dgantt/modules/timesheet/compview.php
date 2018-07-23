@@ -161,9 +161,6 @@ while(1)
 	<?php 
 	for($i=count($weeklydata)-2;$i>=0;$i--) // dont show current week which is at last index
 	{
-		break;
-		
-		
 		$week = $i+1;
 		$hours = $weeklydata[$i]*8;
 		$weeklydata[$i] = $weeklydata[$i]+2;

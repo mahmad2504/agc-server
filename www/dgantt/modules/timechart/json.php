@@ -153,6 +153,16 @@ foreach($worklogs as $user=>$type)
 		//echo $type.EOL;
 		$obj->desc = $type;
 		$obj->values = array();
+		if(count($data) == 0)
+		{
+			$value = new Obj();
+			$value->dataObj = null;
+			$value->from = "/Date(".strtotime(GetToday('Y-m-d'))."000)/";
+			$value->to = "/Date(".strtotime(GetToday('Y-m-d'))."000)/";
+			$value->customClass = "ganttWhite";
+			$value->label = "";
+			$obj->values[] = $value;
+		}
 		foreach($worklogs as $date=>$worklog)
 		{
 			//echo $date.EOL;

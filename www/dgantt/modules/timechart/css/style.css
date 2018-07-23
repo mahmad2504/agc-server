@@ -204,6 +204,12 @@
     text-align: center;
     font-size: 11px;
 }
+.fn-gantt .ganttWhite {
+    background-color: #ffffff;
+}
+.fn-gantt .ganttWhite .fn-label {
+    color: #ffffff !important;
+}
 
 .fn-gantt .ganttDarkBlue {
     background-color: #95C8D8;
