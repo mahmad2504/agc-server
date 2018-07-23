@@ -769,6 +769,7 @@ class GanResource
 	private $name;
 	private $email;
 	private $id;
+	private $openair_name=null;
 	private $efficiency = 1.0;
 	private $group = null;
 	private $domelement;
@@ -776,7 +777,7 @@ class GanResource
 	private $tasks=array();
 	private $vacations=array();
 	
-	function __construct($doc,$DOMElement=null,$effciencyid=null,$groupid=null,$parent=null)
+	function __construct($doc,$DOMElement=null,$effciencyid=null,$groupid=null,$parent=null,$openairid=null)
 	{
 		if($DOMElement == null)
 		{
@@ -830,7 +831,19 @@ class GanResource
 				}
 			}
 		}
+		if($openairid != null)
+		{
+			$customproperties = $DOMElement->getElementsByTagName('custom-property');
+			foreach($customproperties as $cp)
+			{
+				if($cp->getAttribute('definition-id') == $openairid)
+				{
+					$this->openair_name = $cp->getAttribute('value');
+					break;
+				}
+			}
 			
+	}
 	}
 	public function __set($name,$value)
 	{
@@ -880,6 +893,9 @@ class GanResource
 			case 'Id':
 				return $this->id;
 				break;
+			case 'OpenAirName':
+				return  $this->openair_name;
+				break;
 			case 'Name':
 				return $this->name;
 				break;
@@ -914,6 +930,7 @@ class GanResources
 		$efficiencyid = null;
 		$role = "";
 		$groupid = null;
+		$openairid = null;
 		$records = $xpath->query('/project/resources/custom-property-definition');
 		foreach ($records as $i => $cd) 
 		{
@@ -925,11 +942,16 @@ class GanResources
 			{
 				$groupid = $cd->getAttribute('id');
 			}
+			else if( strtolower($cd->getAttribute('name')) == 'open air')
+			{
+				$openairid = $cd->getAttribute('id');
+
+			}
 		}
 		$records = $xpath->query('/project/resources/resource');
 		foreach ($records as $i => $record) 
 		{
-			$resource = new GanResource($doc,$record,$efficiencyid,$groupid,$this);
+			$resource = new GanResource($doc,$record,$efficiencyid,$groupid,$this,$openairid);
 			$this->list[$resource->Id] = $resource; 
 		}
 		// Read the vacations of resources

@@ -36,9 +36,16 @@ $weekend = $milestone->Weekend;
 $wdate = $milestone->GetEndWeekDate($date);
 
 if($dayreport==1)
-	$msg = "Activity Report of ".$date;
+	if($user != '')
+	{
+		//$resource = $milestone->gan->ResourcesObj->FindResource($user);
+
+		$msg = "Activity Report of <span style='color:#5F9EA0;'>".$user.'</span> for '.$date;
+	}
+	else
+		$msg = "Activity Report for ".$date;
 else
-	$msg = "Activity Report For the week ending ".$wdate;
+	$msg = "Activity Report for the week ending ".$wdate;
 
 //foreach($worklogs as $worklog)
 //{

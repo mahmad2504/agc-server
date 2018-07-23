@@ -583,8 +583,10 @@ class Analytics
 	{
 		foreach($resources as $resource)
 		{
+			//echo $resource->Name.EOL;
 			if($resource->OpenAirName != null)
 			{
+				//echo $resource->OpenAirName.EOL;
 				if( array_key_exists($resource->Name,$this->worklogs))
 				{
 					$this->worklogs[$resource->Name]['Open Air'] = array();
@@ -654,7 +656,7 @@ class Analytics
 	}
 	
 	
-	function GetDailyTimeSheet()
+	function GetFullTimeSheet()
 	{
 		//OpenAirName
 		$resources = $tasks = $this->gan->Resources;
