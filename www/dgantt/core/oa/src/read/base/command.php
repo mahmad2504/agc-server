@@ -2,6 +2,7 @@
 class  ReadCommand
 {
 	public $method='all';
+	public $filter = null;
 	public $limit=1;
 	public $type='';
 	public $result;
@@ -55,6 +56,14 @@ class  ReadCommand
 		$read->appendChild($type);
 		$read->appendChild($method);
 		$read->appendChild($limit);
+		
+		if($this->filter != null)
+		{
+			$filter = $dom->createAttribute('filter');
+			$filter->value = $this->filter;
+			$read->appendChild($filter);
+		}
+		
 		return $read;
 	}
 	function _setResults($array)

@@ -172,8 +172,13 @@ foreach($worklogs as $user=>$type)
 			$dataObj = new Obj();
 			$dataObj->url = null;
 			$timespent = 0.0;
+			$dataObj->requested = 0;
 			foreach($worklog as $log)
 			{				
+				if($log->approved == 0)
+				{
+					$dataObj->requested = 1;
+				}
 				$timespent += $log->timespent;
 				if(isset($log->key))
 				{
@@ -197,6 +202,10 @@ foreach($worklogs as $user=>$type)
 				$value->customClass = "ganttBlue";
 			else
 				$value->customClass = "ganttDarkBlue";
+			
+			if($dataObj->requested)
+				$value->customClass = "ganttRed";
+			
 			$obj->values[] = $value;
 			//echo $timespent.EOL;
 		}

@@ -341,13 +341,13 @@ class OpenAir
     @param[in] $projecttaskid id of the project task
     @returns   object of type ReadCommand. For results, access result member of this object. result is filled by  Execute function 
 	*/
-	function _ReadWorkLogsByProjectTaskId($projecttaskid)
+	function _ReadWorkLogsByProjectTaskId($approved,$projecttaskid)
 	{
-		$cworklogs = new Command_ReadWorklogsByProjectTaskId($projecttaskid,1000);
+		$cworklogs = new Command_ReadWorklogsByProjectTaskId($approved,$projecttaskid,1000);
 		$this->AddCommand($cworklogs);
 		return $cworklogs;
 	}
-	public function ReadWorkLogsByProjectTaskId($in,$field='userid') 
+	public function ReadWorkLogsByProjectTaskId($approved,$in,$field='userid') 
 	{
 		$ids = array();
 		$handles = array();
@@ -362,19 +362,19 @@ class OpenAir
 		}
 		foreach($ids as $key=>$id)
 		{
-			$handles[] = $this->_ReadWorkLogsByProjectTaskId($id);
+			$handles[] = $this->_ReadWorkLogsByProjectTaskId($approved,$id);
 		}
 		$response = new Response($handles);
 		return $response;
 	}
-	public function ReadWorkLogsByProjectId($projectid)
+	public function ReadWorkLogsByProjectId($projectid,$approved=false)
 	{
 		$h1 = $this->ReadTasksByProjectId($projectid);
 		$this->Execute();
-		$h2 = $this->ReadWorkLogsByProjectTaskId($h1,'id');
+		$h2 = $this->ReadWorkLogsByProjectTaskId($approved,$h1,'id');
 		$this->Execute();
 		//$h2->toString('date','userid','decimal_hours');
-		return $h2->Data('date','userid','decimal_hours');
+		return $h2->Data('id','date','userid','decimal_hours');
 	}
 	public function ReadProjectId($projectname)
 	{

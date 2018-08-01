@@ -72,11 +72,21 @@ class OpenAirIfc
 			{
 				$users[$user['id']] = $user['name'];
 			}
-			$this->worklogs = $oa->ReadWorkLogsByProjectId($project[0]['id']);
+			$this->worklogs = $oa->ReadWorkLogsByProjectId($project[0]['id'],false);
+			$worklogs_approved = $oa->ReadWorkLogsByProjectId($project[0]['id'],true);
 			foreach($this->worklogs as &$worklog)
 			{
+				$worklog['approved'] = 0;
+				foreach($worklogs_approved as $worklog_approved)
+				{
+					if($worklog_approved['id'] == $worklog['id'])
+					{
+						$worklog['approved'] = 1;
+					}
+				}
 				$worklog['username'] = $users[$worklog['userid']];
 			}
+			
 			$d = serialize($this->worklogs);
 			file_put_contents(OPENAIR_DATA_FILENAME,$d);
 		}

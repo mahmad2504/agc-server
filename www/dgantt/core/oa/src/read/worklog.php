@@ -5,10 +5,12 @@
  */
 class Command_ReadWorklogsByProjectTaskId extends ReadCommand
 {
-	function __construct($projecttaskid,$limit=1000) 
+	function __construct($approved,$projecttaskid,$limit=1000) 
 	{
 		$this->type = 'Task';
 		$this->method = 'equal to';
+		if($approved)
+			$this->filter = 'approved-timesheets';
 		$this->limit = $limit;
 		$this->_projecttaskid = $projecttaskid;
 	}

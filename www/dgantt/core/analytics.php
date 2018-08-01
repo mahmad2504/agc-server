@@ -569,7 +569,6 @@ class Analytics
 	{
 		$data =  array();
 		$worklogs = $this->oa->GetWorkLogs();
-		
 		if($worklogs == null)
 		      return $data;
 		foreach($worklogs as $worklog)
@@ -577,13 +576,13 @@ class Analytics
 			//(strtolower($worklog['username']) == $name) ||
 			if($name == $worklog['userid'])
 			{
-				//var_dump($worklog);
 				$wlg = new Obj();
 				$wlg->id = $worklog['userid'];
 				$wlg->started = $worklog['date'];
 				//echo $worklog['decimal_hours'].EOL;
 		
 				$wlg->timespent = $worklog['decimal_hours']/8;
+				$wlg->approved = $worklog['approved'];
 				//if($name == 2316)
 				//{
 				//	var_dump($worklog);
@@ -640,6 +639,7 @@ class Analytics
 			foreach($task->Jtask->worklogs as $worklog)
 			{
 				$worklog->key = $task->Jtask->key;
+				$worklog->approved = 1;
 				//echo $worklog->author." ".$worklog->started.EOL;
 				
 				if(array_key_exists($worklog->author,$this->worklogs))
