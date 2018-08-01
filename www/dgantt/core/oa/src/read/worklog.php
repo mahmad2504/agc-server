@@ -11,6 +11,9 @@ class Command_ReadWorklogsByProjectTaskId extends ReadCommand
 		$this->method = 'equal to';
 		if($approved)
 			$this->filter = 'approved-timesheets';
+		else
+			$this->filter = 'submitted-timesheets';
+
 		$this->limit = $limit;
 		$this->_projecttaskid = $projecttaskid;
 	}

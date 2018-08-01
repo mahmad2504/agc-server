@@ -196,7 +196,8 @@ foreach($worklogs as $user=>$type)
 			$value->from = "/Date(".strtotime($date)."000)/";
 			$value->to = "/Date(".strtotime($date)."000)/";
 			$value->label = $timespent*8;
-			
+			if($value->label == 0)
+				$value->label = "0";
 			
 			if($type == 'Jira')
 				$value->customClass = "ganttBlue";
