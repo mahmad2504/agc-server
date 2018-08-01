@@ -37,10 +37,14 @@ while(1)
 		{
 			$day = "tomorrow ";
 			$rebuilds='&rebuild=1';
+			$oa='&oa=1';
 			$hour = 0;
 		}
 		else
+		{
 			$rebuilds='';
+			$oa='';
+		}
 	}
 
 	if($env == 'web')
@@ -60,10 +64,10 @@ while(1)
 		echo "<h1>Updating ".$company->Name." projects</h1>";
 		foreach($company->projects as $project)
 		{
-			$cmd = $url.$company->Name."/".$project->Name.'/sync'."?env=".$env.$rebuilds;		
+			$cmd = $url.$company->Name."/".$project->Name.'/sync'."?env=".$env.$rebuilds.$oa;		
 			echo $cmd.EOL;
 			echo file_get_contents($cmd);
-			//$cmd = $url.$company->Name."/".$project->Name.'/auditreport'."?env=".$env.$rebuilds;
+			//$cmd = $url.$company->Name."/".$project->Name.'/auditreport'."?env=".$env.$rebuilds.$oa;
 			//file_get_contents($cmd);
 		}
 	}

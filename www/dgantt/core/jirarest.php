@@ -950,6 +950,11 @@ class Jirarest
 			}
 			$worklog->id = $log['id'];
 			$start_date= explode("T", $log['started'], 2);
+			$tme = explode(":",$start_date[1]);
+			if($tme[0] == 23) // Jira does not return correct date time as per timezone. A bad fix though
+				$start_date[0] = date('Y-m-d',strtotime('+1 day', strtotime($start_date[0])));
+
+			//echo $worklog->id." ".$tme[0]." ".$tme[1]." ".$start_date[0].EOL;
 			$worklog->started = $start_date[0];
 			$worklog->time = $start_date[1];
 			$worklog->timespent = self::ConvertJiraTime($log['timeSpent']);

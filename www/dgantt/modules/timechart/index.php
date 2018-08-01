@@ -2,7 +2,7 @@
 <!doctype html>
 <html lang="en-au">
     <head>
-        <title>jQuery.Gantt</title>
+        <title>Time Chart</title>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=Edge;chrome=1" >
         <?php echo '<link rel="stylesheet" href="'.TIMECHART_FOLDER.'/css/style.css" />'; ?>
@@ -35,7 +35,6 @@
     </head>
     <body>
 		<div class="gantt"></div>
-		
 		<br>
 		<center>
 			<a href="http://taitems.github.io/jQuery.Gantt" title="Jquery Gantt" target="_blank">Deisgned From Jquey Gantt</a>

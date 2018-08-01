@@ -26,6 +26,7 @@ define('CPARAMS',DGANTTFOLDER.'/core/cparams.php');
 define('COMMON',DGANTTFOLDER.'/core/common.php');
 define('GLOBALS',DGANTTFOLDER.'/core/globals.php');
 define('PARSES',DGANTTFOLDER.'/core/pparse.php');
+define('OAFOLDER',DGANTTFOLDER.'/core/oa');
 
 define('PROJECTS',DGANTTFOLDER.'/data/');
 

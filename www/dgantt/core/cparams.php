@@ -64,6 +64,12 @@ echo $cmd.EOL;
 if(!isset($user))
 	$user= '';
 
+
+if(!isset($oa))
+	$oa=0;
+else
+	$oa = ($oa == 0) ? 0:1;
+
 if(!isset($data))
 	$data = 0;
 else

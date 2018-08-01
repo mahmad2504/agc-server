@@ -66,6 +66,26 @@ class Sync
 	public function __get($name)
 	{
 	}
+	private function ValidateOpenAirWorklogs($oa,$name)
+	{
+		$worklogs = $oa->GetWorkLogs();
+		
+		if($worklogs == null)
+		     return 0;
+		$found = 0;
+		foreach($worklogs as $worklog)
+		{
+			if($name == $worklog['userid'])
+			{
+				$found = 1;
+			}
+		}
+		if($found == 0)
+		{
+			echo "Warning: No worklog found for user <span style='color:red;'>".$name."</span> in openair".EOL;	
+		}
+		return 1;
+	}
 	function __construct($rebuild=0,$debug=0)
 	{
 		global $GAN_FILE;
@@ -179,6 +199,16 @@ class Sync
 		$gan->Save();
 		$this->SaveGantt($gan);
 		$this->SaveLog($gan);
+		global $oa;
+		$oaifc = new OpenAirIfc($gan->Project->Name,$oa);
+		
+		$resources = $gan->Resources;
+		foreach($resources as $resource)
+		{
+			if($resource->OpenAirName != null)
+				$this->ValidateOpenAirWorklogs($oaifc,$resource->OpenAirName);
+		}
+		
 		global $save;
 
 		if($save == 1)

@@ -35,6 +35,7 @@ if (!is_dir($organization_folder)) {
 $project_folder = $organization_folder."/".$project_name;
 $gan_folder = DATA_FOLDER."/projects/".$organization."/".$project_name;
 
+define('OPENAIR_DATA_FILENAME',$project_folder."/".$project_name.'/openair');
 
 if (!is_dir($project_folder)) {
    trace("Project ".$project_name." ".' Does not exist','MSG');
@@ -66,7 +67,7 @@ require_once('history.php');
 require_once('plan.php');
 require_once('sync.php');
 require_once('analytics.php');
-
+require_once('openairifc.php');
 //require_once('structure.php');
 //require_once('filter.php');
 //require_once('project.php');

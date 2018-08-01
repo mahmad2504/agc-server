@@ -23,6 +23,7 @@ function cmp($a, $b)
 
 class Analytics
 {
+	private $oa = null;
 	private $data = null;
 	private $rutilization=array();
 	private $history;
@@ -567,7 +568,33 @@ class Analytics
 	private function FindOpenAirWorklogs($name)
 	{
 		$data =  array();
-		if($name == 'Ateeb')
+		$worklogs = $this->oa->GetWorkLogs();
+		
+		if($worklogs == null)
+		      return $data;
+		foreach($worklogs as $worklog)
+		{
+			//(strtolower($worklog['username']) == $name) ||
+			if($name == $worklog['userid'])
+			{
+				//var_dump($worklog);
+				$wlg = new Obj();
+				$wlg->id = $worklog['userid'];
+				$wlg->started = $worklog['date'];
+				//echo $worklog['decimal_hours'].EOL;
+		
+				$wlg->timespent = $worklog['decimal_hours']/8;
+				//if($name == 2316)
+				//{
+				//	var_dump($worklog);
+				//	echo $name," ".$wlg->started." ".$wlg->timespent.EOL;
+				//}
+				$wlg->comment = '';
+				$wlg->author = $name;
+				$data[$wlg->started][] = $wlg;
+			}
+		}
+		/*if($name == 'Ateeb')
 		{		
 			$worklog = new Obj();
 			$worklog->id ='12345';
@@ -576,7 +603,7 @@ class Analytics
 			$worklog->comment = '';
 			$worklog->author = 'Ateeb';
 			$data[$worklog->started][] = $worklog;
-		}
+		}*/
 		return $data;
 	}
 	private function ProcessOpenAirWorklogs($resources,$worklogs)
@@ -659,7 +686,7 @@ class Analytics
 	function GetFullTimeSheet()
 	{
 		//OpenAirName
-		$resources = $tasks = $this->gan->Resources;
+		$resources =  $this->gan->Resources;
 		
 		end($this->msdata);
 		$key = key($this->msdata);
@@ -674,7 +701,6 @@ class Analytics
 			echo $task->ExtId."Not found";
 			exit();
 		}
-		
 		$this->ProcessAllWorkLogs($task);
 		$this->ProcessOpenAirWorklogs($resources,$this->worklogs);
 		return $this->worklogs;
@@ -927,7 +953,7 @@ class Analytics
 		$this->BuildHistory($msdata);
 		$this->BuildResourceUtilization($msdata);
 		$this->msdata = $msdata;
-		
+		$this->oa = new OpenAirIfc();
 		//TaskListByExtId
 		//echo count($this->data);
 	

@@ -945,7 +945,6 @@ class GanResources
 			else if( strtolower($cd->getAttribute('name')) == 'open air')
 			{
 				$openairid = $cd->getAttribute('id');
-
 			}
 		}
 		$records = $xpath->query('/project/resources/resource');
