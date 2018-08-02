@@ -66,7 +66,7 @@ class Sync
 	public function __get($name)
 	{
 	}
-	private function ValidateOpenAirWorklogs($oa,$name)
+	private function ValidateOpenAirWorklogs($oa,$resource)
 	{
 		$worklogs = $oa->GetWorkLogs();
 		
@@ -75,14 +75,14 @@ class Sync
 		$found = 0;
 		foreach($worklogs as $worklog)
 		{
-			if($name == $worklog['userid'])
+			if($resource->OpenAirName == $worklog['userid'])
 			{
 				$found = 1;
 			}
 		}
 		if($found == 0)
 		{
-			echo "Warning: No worklog found for user <span style='color:red;'>".$name."</span> in openair".EOL;	
+			echo "Warning: No worklog found for user <span style='color:red;'>".$resource->Name."(".$resource->OpenAirName.")</span> in openair".EOL;	
 		}
 		return 1;
 	}
@@ -206,7 +206,7 @@ class Sync
 		foreach($resources as $resource)
 		{
 			if($resource->OpenAirName != null)
-				$this->ValidateOpenAirWorklogs($oaifc,$resource->OpenAirName);
+				$this->ValidateOpenAirWorklogs($oaifc,$resource);
 		}
 		
 		global $save;

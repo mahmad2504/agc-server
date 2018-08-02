@@ -21,6 +21,7 @@ date_default_timezone_set("Asia/Karachi");
 while(1)
 {
 	$rebuilds='';
+	$oa='';
 	$min = date("i");
 	$hour = date("H");
 	$day = "today ";

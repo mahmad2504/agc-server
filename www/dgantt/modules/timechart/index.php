@@ -60,7 +60,7 @@
 				scale: "days",
 				maxScale: "days",
 				minScale: "days",
-				itemsPerPage: 10,
+				itemsPerPage: 50,
 				onItemClick: function(data) {
 				if(data != null)
 				{

@@ -660,7 +660,7 @@ class Analytics
 				{
 					$this->worklogs[$worklog->author] =  array();
 					$this->worklogs[$worklog->author]['Jira'] = array();
-					//$this->worklogs[$worklog->author]['Open Air'] = array();
+					$this->worklogs[$worklog->author]['displayname'] = $worklog->displayname;
 					
 					$this->worklogs[$worklog->author]['Jira'][$worklog->started] =  array();
 					$this->worklogs[$worklog->author]['Jira'][$worklog->started][] = $worklog;

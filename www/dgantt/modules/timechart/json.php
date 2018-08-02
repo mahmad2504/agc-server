@@ -140,14 +140,22 @@ if(strlen($board)==0)
 $milestone = new Analytics($board);
 $url = $milestone->gan->Jira->url;
 
-$worklogs = $milestone->GetFullTimeSheet();
+$worklogs_data = $milestone->GetFullTimeSheet();
 $data = array();
-foreach($worklogs as $user=>$type)
+foreach($worklogs_data as $user=>$type)
 {
-	//echo $user.EOL;
-	foreach($type  as $type => $worklogs)
+	$username = $user;
+	foreach($type  as $type=>$worklogs)
 	{
+		if($type == 'displayname')
+			continue;
 		$obj = new Obj();
+		if($user != "")
+		{
+			if(array_key_exists('displayname',$worklogs_data[$user]))
+				$user = $worklogs_data[$user]['displayname'];
+		}
+		
 		$obj->name = $user;
 		$user = "";
 		//echo $type.EOL;
@@ -182,7 +190,7 @@ foreach($worklogs as $user=>$type)
 				$timespent += $log->timespent;
 				if(isset($log->key))
 				{
-					$dataObj->url = 'report?date='.$log->started.'&dayreport=1'.'&user='.$obj->name;
+					$dataObj->url = 'report?date='.$log->started.'&dayreport=1'.'&$username='.$obj->name;
 					
 					//$dataObj->url[] = $url."/browse/".$log->key;
 					//$dataObj->url[] = $url."/browse/".$log->key;					
