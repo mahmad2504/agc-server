@@ -1169,7 +1169,7 @@ class GanTask
 	public $forceplannedresource=0;
 	private $project=null;
 	private $cproperties;
-	
+	private $deadlineGiven=0;
 	
 	//<task id="0" name="Project-1" color="#8cb6ce" meeting="false" start="2017-08-24" duration="1" complete="0" expand="true">
 	function __construct($project,$parenttask,$doc, $DOMElement=null,$cproperties=null,$jira=null,$rebuild=0,$tstart=null,$tend=null)
@@ -1223,11 +1223,11 @@ class GanTask
 			$this->domelement->appendChild($cp);
 			$this->querynode = $cp;
 			
-			$cp = $doc->createElement('customproperty');
-			$cp->setAttribute('taskproperty-id',$deadlineid);
-			$cp->setAttribute('value','');
-			$this->domelement->appendChild($cp);
-			$this->deadlinenode = $cp;
+			//$cp = $doc->createElement('customproperty');
+			//$cp->setAttribute('taskproperty-id',$deadlineid);
+			//$cp->setAttribute('value','');
+			//$this->domelement->appendChild($cp);
+			//$this->deadlinenode = $cp;
 			
 			return;
 		}
@@ -1281,6 +1281,7 @@ class GanTask
 								// valid milestone date
 								$this->deadline = $deadline;
 						$this->IsTrakingDatesGiven = 2;
+								$this->deadlineGiven=1;
 								$this->deadlinenode = $child;
 							}
 							else
@@ -1316,10 +1317,13 @@ class GanTask
 			case 'Deadline':
 				$override = 0;
 				$dl = strtotime($value);
+				if($this->deadlineGiven == 1)
+				{
 				if(  strtotime($this->deadline) != $dl)
 				{
 					$override = 1;
 					
+				}
 				}
 				if(($dl >= strtotime($this->project->Start))&&($dl <= strtotime($this->project->End)))
 				{
