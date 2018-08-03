@@ -110,7 +110,7 @@ class Filter {
 		//echo "---".$query."----".$cached." ".EOL;
 		if(strlen($query) == 0)
 			return;
-		$fields = 'id,key,status,summary,start,end,timeoriginalestimate,timespent,labels,assignee,created,issuetype,issuelinks,emailAddress,aggregatetimespent,subtasks,story_points';
+		$fields = 'id,key,status,summary,start,end,timeoriginalestimate,timespent,labels,assignee,created,issuetype,issuelinks,emailAddress,aggregatetimespent,subtasks,story_points,duedate';
 		$this->query = $query;
 		if (file_exists($name) && $rebuild==0) 
 		{

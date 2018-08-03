@@ -301,6 +301,9 @@ class Sync
 		//echo $task->Name.EOL;
 		$task->Status = $jtask->status;
 		$task->HasSubtasks = $jtask->subtasks;
+		if(isset($jtask->duedate))
+			if(strlen($jtask->duedate)>0)
+				$task->Deadline = $jtask->duedate;
 		if($jtask->assignee != null)
 		{
 			//echo $jtask->assignee.EOL;
@@ -443,11 +446,10 @@ class Sync
 				{
 					if( $row->level != ($jtask->Gtask->Level - $baselevel))
 					{
-						echo "Warning: ".$jtask->Gtask->Name."(".$key.")@ ".$jtask->Gtask->Id." misplaced in jira structure";
+						echo "Warning: ".$jtask->Gtask->Name."(".$key.")@ ".$jtask->Gtask->Id." misplaced in jira structure".EOL;
 					}
 					break;
 				}
-			
 			}
 		}
 	}

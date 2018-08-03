@@ -1163,10 +1163,14 @@ class GanTask
 	private $jtask=null;
 	private $exclude = 0;
 	private $querynode;
+	private $deadlinenode=null;
 	public $handled=0;
 	public $refcount=0;
 	public $forceplannedresource=0;
-	private $project;
+	private $project=null;
+	private $cproperties;
+	
+	
 	//<task id="0" name="Project-1" color="#8cb6ce" meeting="false" start="2017-08-24" duration="1" complete="0" expand="true">
 	function __construct($project,$parenttask,$doc, $DOMElement=null,$cproperties=null,$jira=null,$rebuild=0,$tstart=null,$tend=null)
 	{
@@ -1175,8 +1179,10 @@ class GanTask
 		$this->parenttask = $parenttask;
 		$this->deadline = $tend;
 		$this->project = $project;
+		$this->cproperties = $cproperties;
 		$found = 0;
 		$queryid = 0;
+		$deadlineid = 0;
 		foreach($cproperties->List as $cpid=>$obj)
 		{
 			//echo $obj->Name.EOL;
@@ -1190,11 +1196,16 @@ class GanTask
 				$queryid = $cpid;
 				$found++;
 			}
+			if( strtolower(trim($obj->Name)) == 'deadline')
+			{
+				$deadlineid = $cpid;
+				$found++;
+			}
 		}
 		//echo $queryid.$found.EOL;
-		if($found != 2)
+		if($found != 3)
 		{
-			echo "Tag/Query Column not found".EOL;
+			echo "Tag/Query/Deadline Column not found".EOL;
 			echo "Create one in project and retry".EOL;
 			exit(1);
 		}
@@ -1211,6 +1222,13 @@ class GanTask
 			$cp->setAttribute('value','');
 			$this->domelement->appendChild($cp);
 			$this->querynode = $cp;
+			
+			$cp = $doc->createElement('customproperty');
+			$cp->setAttribute('taskproperty-id',$deadlineid);
+			$cp->setAttribute('value','');
+			$this->domelement->appendChild($cp);
+			$this->deadlinenode = $cp;
+			
 			return;
 		}
 		$this->domelement = $DOMElement;
@@ -1254,8 +1272,20 @@ class GanTask
 						$this->tags = explode(",",$cpvalue);
 						break;
 					case 'deadline':
+						if(strlen(trim($cpvalue))>0)
+						{
+							$deadline = explode("T",$cpvalue)[0];
+							$dl = strtotime($this->deadline);
+							if(($dl >= strtotime($this->project->Start))&&($dl <= strtotime($this->project->End)))
+							{
+								// valid milestone date
+								$this->deadline = $deadline;
 						$this->IsTrakingDatesGiven = 2;
-						$this->deadline = explode("T",$cpvalue)[0];
+								$this->deadlinenode = $child;
+							}
+							else
+								echo "Warning : ".$this->Name." @".$this->Id." had invalid deadline. Ignoring".EOL;
+						}
 						break;
 					case 'tracking start':
 						$this->IsTrakingDatesGiven = 1;
@@ -1283,6 +1313,35 @@ class GanTask
 	{
 		switch($name)
 		{
+			case 'Deadline':
+				$override = 0;
+				$dl = strtotime($value);
+				if(  strtotime($this->deadline) != $dl)
+				{
+					$override = 1;
+					
+				}
+				if(($dl >= strtotime($this->project->Start))&&($dl <= strtotime($this->project->End)))
+				{
+					if($override==1)
+						echo "Overriding deadline for ".$this->JiraId." in project plan from Jira".EOL;	
+					
+					
+					// valid milestone date
+					$this->deadline = $value;
+					$this->IsTrakingDatesGiven = 2;
+					
+					// We dont want to change the deadline set in plan from Jira values. Let them be different and changed by PM only
+					//if($this->deadlinenode != null)
+					//{
+					//	$this->deadlinenode->setAttribute('value',$value);			
+					//}
+					//else
+					//	echo "Warning : Unable to set deadline for ".$this->Name." @".$this->Id.EOL;
+				}
+				else
+					echo "Warning : ".$this->Name." @".$this->Id." had invalid deadline ".$value." Ignoring".EOL;
+				return;
 			case 'ForcePlannedResource':
 				$this->forceplannedresource=$value;
 				break;
@@ -1950,7 +2009,7 @@ class Gan
 			$tend = $ptask->TrackingEndDate;
 			$parenttask = $this->TaskTree[0];
 		}
-		$task =  new GanTask(null,$parenttask,$this->doc,null,$this->cproperties,null,0,$tstart,$tend);
+		$task =  new GanTask($this->project,$parenttask,$this->doc,null,$this->cproperties,null,0,$tstart,$tend);
 		$task->Name =  $name;
 		$task->Tag = $tag;
 		if($ptask == null)

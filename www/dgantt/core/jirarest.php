@@ -432,6 +432,8 @@ class Jirarest
 		global $start,$end,$ext_id,$epic_name,$story_points;
 		switch($field)
 		{
+			case 'duedate':
+				return $data['fields']['duedate'];
 			case 'created':
 				$start_date= explode("T", $data['fields']['created'], 2);
 				return $start_date[0];
