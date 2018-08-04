@@ -30,10 +30,14 @@ if(strlen($board)==0)
 	echo "Board not mentioned".EOL;
 	return;
 }
-$milestone = new Analytics($board);
-$worklogs = $milestone->WeeklyReport;
-$weekend = $milestone->Weekend;
+if(isset($weekend))
+	$milestone = new Analytics($board,$weekend);
+else
+	$milestone = new Analytics($board);
+
+$worklogs = $milestone->GetWeeklyReport();
 $wdate = $milestone->GetEndWeekDate($date);
+
 
 if($dayreport==1)
 	if($user != '')
@@ -149,7 +153,7 @@ else
 			$lastkey = $worklog->key;
 		}
 		echo '<p>'.$worklog->comment.'</p>';
-		echo '<p align="right"><a href="">'.$worklog->displayname.'</a> logged <a href="">'.$worklog->timespent.' day(s) <br><span style="font-size: xx-small;">'.$worklog->started.'&nbsp&nbsp&nbsp</span></a></p>';
+		echo '<p align="right"><a href="">'.$worklog->displayname.'</a> logged <a href="">'.($worklog->timespent*8).' hour(s) <br><span style="font-size: xx-small;">'.$worklog->started.'&nbsp&nbsp&nbsp</span></a></p>';
 		
 	}
 ?>

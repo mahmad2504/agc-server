@@ -137,13 +137,256 @@ if(strlen($board)==0)
 	return;
 }
 
-$milestone = new Analytics($board);
+$milestone = new Analytics($board,'Sat');
 $url = $milestone->gan->Jira->url;
 
 $worklogs_data = $milestone->GetFullTimeSheet();
-$data = array();
-foreach($worklogs_data as $user=>$type)
+
+
+if($scale=='days')
 {
+	$data = GetDailyData($worklogs_data);
+	echo json_encode($data);
+	return;
+}
+else if($scale=='weeks')
+{
+	$data = GetWeeklyData($worklogs_data);
+	echo json_encode($data);
+	return;
+}
+else if($scale=='months')
+{
+	$data = GetMonthlyData($worklogs_data);
+	echo json_encode($data);
+	return;
+}
+function GetEndMonthDate($date)
+{
+	$lastDateOfMonth = date("Y-m-t", strtotime($date));
+	return $lastDateOfMonth;
+}
+function GetMonthlyData($worklogs_data)
+{
+	global $milestone ;
+	$data = array();
+	foreach($worklogs_data as $user=>$type)
+	{
+		$username = $user;
+		//if($user != 'mkhalid')
+		//		continue;
+			
+		//echo $username.EOL;
+		foreach($type  as $type=>$worklogs)
+		{
+			if($type == 'displayname')
+				continue;
+			$obj = new Obj();
+			if($user != "")
+			{
+				if(array_key_exists('displayname',$worklogs_data[$user]))
+					$user = $worklogs_data[$user]['displayname'];
+			}
+			
+			$obj->name = $user;
+			$user = "";
+			//echo $type.EOL;
+			$obj->desc = $type;
+			$obj->values = array();
+			if(count($data) == 0)
+			{
+				$value = new Obj();
+				$value->dataObj = null;
+				$value->from = "/Date(".strtotime('+1 day',strtotime(GetToday('Y-m-d')))."000)/";
+				$value->to = "/Date(".strtotime('+1 day',strtotime(GetToday('Y-m-d')))."000)/";
+				$value->customClass = "ganttWhite";
+				$value->label = "";
+				$obj->values[] = $value;
+			}
+			$monthly_worklogs = array();
+			foreach($worklogs as $date=>$worklog)
+			{
+				$monthdate = GetEndMonthDate($date);
+				//echo "---->".$monthdate.EOL;
+				if(array_key_exists($monthdate,$monthly_worklogs))
+				{}
+				else
+					$monthly_worklogs[$monthdate] =  array();
+				foreach($worklog as $log)
+				{	
+					$log->started = $monthdate;
+					$monthly_worklogs[$monthdate][] = $log;
+					//echo $log->timespent.EOL;
+				}
+			}
+			foreach($monthly_worklogs as $date=>$worklog)
+			{
+				//echo $date.EOL;
+				//if( count($worklog) > 1)
+				//	echo "dddd".EOL;
+				$value = new Obj();
+				$dataObj = new Obj();
+				$dataObj->url = null;
+				$timespent = 0.0;
+				$dataObj->requested = 0;
+				foreach($worklog as $log)
+				{				
+					if($log->approved == 0)
+					{
+						$dataObj->requested = 1;
+					}
+					
+					$timespent += $log->timespent;
+					//echo $log->timespent." ".$timespent.EOL;
+					if(isset($log->key))
+					{
+						$dataObj->url = 'report?date='.$log->started.'&user='.$username."&weekend=Sat";
+						
+						//$dataObj->url[] = $url."/browse/".$log->key;
+						//$dataObj->url[] = $url."/browse/".$log->key;					
+					}
+					//echo $log->timespent.EOL;
+				}
+				
+				$value->dataObj = null;
+				if(count($dataObj->url)>0)
+					$value->dataObj = json_encode($dataObj);
+
+				$value->from = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
+				$value->to = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
+				
+				$value->label = $timespent*8;
+				$value->label = round($value->label);
+				if($value->label == 0)
+					$value->label = "0";
+				
+				if($type == 'Jira')
+					$value->customClass = "ganttBlue";
+				else
+					$value->customClass = "ganttDarkBlue";
+				
+				if($dataObj->requested)
+					$value->customClass = "ganttRed";
+				
+				$obj->values[] = $value;
+				//echo $timespent.EOL;
+			}
+			$data[] = $obj;
+		}
+	}	
+	return $data;
+}
+
+function GetWeeklyData($worklogs_data)
+{
+	global $milestone ;
+	$data = array();
+	foreach($worklogs_data as $user=>$type)
+	{
+		$username = $user;
+		//echo $username.EOL;
+		foreach($type  as $type=>$worklogs)
+		{
+			if($type == 'displayname')
+				continue;
+			$obj = new Obj();
+			if($user != "")
+			{
+				if(array_key_exists('displayname',$worklogs_data[$user]))
+					$user = $worklogs_data[$user]['displayname'];
+			}
+			
+			$obj->name = $user;
+			$user = "";
+			//echo $type.EOL;
+			$obj->desc = $type;
+			$obj->values = array();
+			if(count($data) == 0)
+			{
+				$value = new Obj();
+				$value->dataObj = null;
+				$value->from = "/Date(".strtotime('+1 day',strtotime(GetToday('Y-m-d')))."000)/";
+				$value->to = "/Date(".strtotime('+1 day',strtotime(GetToday('Y-m-d')))."000)/";
+				$value->customClass = "ganttWhite";
+				$value->label = "";
+				$obj->values[] = $value;
+			}
+			$weekly_worklogs = array();
+			foreach($worklogs as $date=>$worklog)
+			{
+				$weekdate = $milestone->GetEndWeekDate($date);
+				if(array_key_exists($weekdate,$weekly_worklogs))
+				{}
+				else
+					$weekly_worklogs[$weekdate] =  array();
+				foreach($worklog as $log)
+				{	
+					$log->started = $weekdate;
+					$weekly_worklogs[$weekdate][] = $log;
+				}
+			}
+			foreach($weekly_worklogs as $date=>$worklog)
+			{
+				//echo $date.EOL;
+				//if( count($worklog) > 1)
+				//	echo "dddd".EOL;
+				$value = new Obj();
+				$dataObj = new Obj();
+				$dataObj->url = null;
+				$timespent = 0.0;
+				$dataObj->requested = 0;
+				foreach($worklog as $log)
+				{				
+					if($log->approved == 0)
+					{
+						$dataObj->requested = 1;
+					}
+					
+					$timespent += $log->timespent;
+					//echo $log->timespent." ".$timespent.EOL;
+					if(isset($log->key))
+					{
+						$dataObj->url = 'report?date='.$log->started.'&user='.$username."&weekend=Sat";
+						
+						//$dataObj->url[] = $url."/browse/".$log->key;
+						//$dataObj->url[] = $url."/browse/".$log->key;					
+					}
+					//echo $log->timespent.EOL;
+				}
+				$value->dataObj = null;
+				if(count($dataObj->url)>0)
+					$value->dataObj = json_encode($dataObj);
+
+				$value->from = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
+				$value->to = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
+				
+				$value->label = $timespent*8;
+				if($value->label == 0)
+					$value->label = "0";
+				
+				if($type == 'Jira')
+					$value->customClass = "ganttBlue";
+				else
+					$value->customClass = "ganttDarkBlue";
+				
+				if($dataObj->requested)
+					$value->customClass = "ganttRed";
+				
+				$obj->values[] = $value;
+				//echo $timespent.EOL;
+			}
+			$data[] = $obj;
+		}
+	}	
+	return $data;
+}
+
+
+function GetDailyData($worklogs_data)
+{
+	$data = array();
+	foreach($worklogs_data as $user=>$type)
+	{
 	$username = $user;
 	foreach($type  as $type=>$worklogs)
 	{
@@ -165,8 +408,8 @@ foreach($worklogs_data as $user=>$type)
 		{
 			$value = new Obj();
 			$value->dataObj = null;
-			$value->from = "/Date(".strtotime(GetToday('Y-m-d'))."000)/";
-			$value->to = "/Date(".strtotime(GetToday('Y-m-d'))."000)/";
+				$value->from = "/Date(".strtotime('+1 day',strtotime(GetToday('Y-m-d')))."000)/";
+				$value->to = "/Date(".strtotime('+1 day',strtotime(GetToday('Y-m-d')))."000)/";
 			$value->customClass = "ganttWhite";
 			$value->label = "";
 			$obj->values[] = $value;
@@ -190,7 +433,7 @@ foreach($worklogs_data as $user=>$type)
 				$timespent += $log->timespent;
 				if(isset($log->key))
 				{
-					$dataObj->url = 'report?date='.$log->started.'&dayreport=1'.'&$username='.$obj->name;
+						$dataObj->url = 'report?date='.$log->started.'&dayreport=1'.'&user='.$username;
 					
 					//$dataObj->url[] = $url."/browse/".$log->key;
 					//$dataObj->url[] = $url."/browse/".$log->key;					
@@ -201,8 +444,9 @@ foreach($worklogs_data as $user=>$type)
 			if(count($dataObj->url)>0)
 				$value->dataObj = json_encode($dataObj);
 
-			$value->from = "/Date(".strtotime($date)."000)/";
-			$value->to = "/Date(".strtotime($date)."000)/";
+				
+				$value->from = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
+				$value->to = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
 			$value->label = $timespent*8;
 			if($value->label == 0)
 				$value->label = "0";
@@ -220,23 +464,9 @@ foreach($worklogs_data as $user=>$type)
 		}
 		$data[] = $obj;
 	}
-}	
+	}	
+	return $data;
+}
 
-echo json_encode($data);
-return;
-
-$data = array();
-$obj = new Obj();
-$obj->desc = "Jira";
-$obj->values = array();  
-$value = new Obj();
-$value->from = "/Date(1320192000000)/";
-$value->to = "/Date(1320192000000)/";
-$value->label = "1h";
-$value->customClass = "ganttRed";
-$obj->values[] = $value;
-$data[] = $obj;
-
-//echo json_encode($data);
 
 ?>

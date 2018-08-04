@@ -40,12 +40,15 @@ class Analytics
 	public $twtasks;
 	public $grand_total;
 	public $msdata;
+	public $weekend="";
 	public $worklogs=array();
 	public function __get($name)
 	{
 		switch($name)
 		{
 			case 'Weekend':
+				if($this->weekend != null)
+					return $this->weekend;
 				return $this->history->gan->Weekend;
 				break;
 			case 'IsArchived':
@@ -53,7 +56,7 @@ class Analytics
 				break;
 			case 'WeeklyReport':
 				global $date;
-				return $this->GetWeeklyReport($this->msdata);
+				return $this->GetWeeklyReport();
 				break;
 			case 'TimeSheet':
 				global $date;
@@ -521,9 +524,10 @@ class Analytics
 			$this->ProcessWorkLogs($stask,$date);
 		}
 	}
-	function GetWeeklyReport($msdata)
+	function GetWeeklyReport()
 	{
 		global $date;
+		$msdata = $this->msdata;
 		$worklog = array();
 		$datew= $this->GetEndWeekDate($date);
 		$this->BuildWeeklyActivity($msdata,$datew);
@@ -930,14 +934,14 @@ class Analytics
 		
 		return GetToday($format);
 	}
-	function __construct($tag)
+	function __construct($tag,$weekend=null)
 	{
 		global $GAN_FILE;
 		global $LOG_FOLDER;
 		$tag = urldecode($tag);
 		$tag = str_replace("'","",$tag);
 		$tag = str_replace('"',"",$tag);
-
+		$this->weekend =  ucfirst(substr($weekend,0, 3));
 		if(file_exists($LOG_FOLDER))
 			$this->history = new History($LOG_FOLDER);
 		else

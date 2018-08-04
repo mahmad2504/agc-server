@@ -1317,8 +1317,7 @@
                         // reset scrollPos
                         $.cookie(this.cookieKey + "ScrollPos", null);
                     }
-					
-					$.getJSON("../json?scale="+settings.scale, function (jsData) {
+		        $.getJSON("timechart?data=1&scale="+settings.scale, function (jsData) {
                         element.data = jsData;
                         core.init(element);
                     });
@@ -1459,7 +1458,6 @@
                     var eo = $(element).offset();
                     var ew = $(element).outerWidth();
                     var eh = $(element).outerHeight();
-
                     if (!element.loader) {
                         element.loader = $('<div class="fn-gantt-loader" style="position: absolute; top: ' + eo.top + 'px; left: ' + eo.left + 'px; width: ' + ew + 'px; height: ' + eh + 'px;">'
                         + '<div class="fn-gantt-loader-spinner"><span>' + settings.waitText + '</span></div></div>');

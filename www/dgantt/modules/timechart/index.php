@@ -58,7 +58,7 @@
 				source: <?php echo '"'.$cmd.'?data=1&scale=days"';?>,
 				navigate: "scroll",
 				scale: "days",
-				maxScale: "days",
+				maxScale: "months",
 				minScale: "days",
 				itemsPerPage: 50,
 				onItemClick: function(data) {
