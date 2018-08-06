@@ -18,11 +18,6 @@ along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 require_once('common.php');	
 require_once(OAFOLDER."/src/includes");
 
-define('API_KEY','9x7G49ENkLCJ81i9XZJU');
-define('ORGANIZATION','mentor graphics');
-define('USERNAME','Integration');
-define('PASSWORD','OAintegration123');
-
 
 class OpenAirIfc 
 {
@@ -33,6 +28,7 @@ class OpenAirIfc
 	}
 	function __construct($name=null,$rebuild=0)
 	{	
+		global $OACONF;
 		if(file_exists(OPENAIR_DATA_FILENAME))
 		{
 			if($rebuild==0)
@@ -48,8 +44,9 @@ class OpenAirIfc
 		if($rebuild==1)
 		{
 			echo "Rebuilding OpenAir Database".EOL;
-			$oa = new OpenAir(API_KEY);
-			$auth = new Auth(ORGANIZATION,USERNAME,PASSWORD);
+			
+			$oa = new OpenAir($OACONF->api_key,"default",'1.0','agc','1.1',$OACONF->url);
+			$auth = new Auth($OACONF->organization,$OACONF->user,$OACONF->pass);
 			$oa->AddAuth($auth);
 			if($this->holds_int($name))
 			{

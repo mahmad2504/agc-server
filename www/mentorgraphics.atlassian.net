@@ -1,8 +1,0 @@
-<configuration>
-	<link name="implements" value="is implemented by"/>
-	<custom_fields name="story_points" value="customfield_10004"/>
-	<custom_fields name="epic_name" value="customfield_10301"/>
-	<custom_fields name="ext_id" value="customfield_14151"/>
-	<custom_fields name="start" value="customfield_11642"/>
-	<custom_fields name="end" value="customfield_11643"/>
-</configuration>

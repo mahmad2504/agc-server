@@ -53,7 +53,8 @@ if(isset($baseline))
 
 
 $GAN_SERIALIZED_FILE = $PLAN_FOLDER."/gan.seralized";
-$CONF;
+$CONF=null;
+$OACONF= null;
 
 function ResetGlocals()
 {

@@ -32,6 +32,7 @@ if (!is_dir($organization_folder)) {
    exit();
 }
 
+$configuration_folder = $organization_folder."/configuration/";
 $project_folder = $organization_folder."/".$project_name;
 $gan_folder = DATA_FOLDER."/projects/".$organization."/".$project_name;
 

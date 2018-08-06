@@ -200,13 +200,21 @@ class Sync
 		$this->SaveGantt($gan);
 		$this->SaveLog($gan);
 		global $oa;
+		global $OACONF;
+		if(($OACONF != null)&&( strlen(trim($gan->Project->Name))>0))
+		{
 		$oaifc = new OpenAirIfc($gan->Project->Name,$oa);
-		
 		$resources = $gan->Resources;
 		foreach($resources as $resource)
 		{
 			if($resource->OpenAirName != null)
 				$this->ValidateOpenAirWorklogs($oaifc,$resource);
+		}
+		}
+		else
+		{
+			if($oa == 1)
+				echo "OpenAir project name not set. Cannot sync with OpenAir".EOL;
 		}
 		
 		global $save;

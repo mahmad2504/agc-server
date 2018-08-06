@@ -43,8 +43,7 @@
 		<div id="chart_div"></div>
 		<br>
 		<center>
-			<a href="http://taitems.github.io/jQuery.Gantt" title="Jquery Gantt" target="_blank">Deisgned From Jquey Gantt</a>
-			<div id="foot">Jira Integration By <br> Mumtaz_Ahmad@mentor.com</div>
+			<div id="foot">Jira, OpenAir Integration By <br> Mumtaz_Ahmad@mentor.com</div>
 		</center>
 		</br>
     </body>

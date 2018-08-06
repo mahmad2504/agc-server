@@ -516,13 +516,13 @@ class JiraInfo
 		$infostring = preg_replace(array('/\s{2,}/', '/[\t\n]/'), ' ', $infostring);
 		$info = explode(" ",$infostring);
 		//echo count($info).EOL;
-		if(count($info) != 2)
-		{
-			echo "Jira Info  missing or incomplete".EOL;
-			echo "[$infostring] Given".EOL;
-			echo "[url user:pass] Required".EOL;
-			exit();
-		}
+		//if(count($info) != 2)
+		//{
+		//	echo "Jira Info  missing or incomplete".EOL;
+		//	echo "[$infostring] Given".EOL;
+		//	echo "[url user:pass] Required".EOL;
+		//	exit();
+		//}
 		$this->url = trim($info[0]);
 		$url = filter_var($this->url, FILTER_VALIDATE_URL);
 		if (strlen($url) == 0) 
@@ -531,21 +531,21 @@ class JiraInfo
 			echo "Update project properties".EOL;
 			exit();
 		}
-		$info = explode(":",$info[1]);
-		if(count($info) < 2)
-		{
-			$t=decrypt($info[0],"abcdef");
-			$info = explode(":",$t);
-		}
+		//$info = explode(":",$info[1]);
+		//if(count($info) < 2)
+		//{
+		//	$t=decrypt($info[0],"abcdef");
+		//	$info = explode(":",$t);
+		//}
 		
-		if(count($info) != 2)
-		{
-			echo "Jira user:password missing or incomplete".EOL;
-			echo "Update Project settings".EOL;
-			exit();
-		}
-		$this->user = trim($info[0]);
-		$this->pass = trim($info[1]);
+		//if(count($info) != 2)
+		//{
+		//	echo "Jira user:password missing or incomplete".EOL;
+		//	echo "Update Project settings".EOL;
+		//	exit();
+		//}
+		//$this->user = trim($info[0]);
+		//$this->pass = trim($info[1]);
 		//echo '['.$this->url.']['.$this->user.']['.$this->pass.']'.EOL;
 	}
 	public function __get($name)
@@ -558,6 +558,18 @@ class JiraInfo
 				return $this->user;
 			case 'pass':
 				return $this->pass;
+		}
+	}
+	public function __set($name,$value)
+	{
+		switch($name)
+		{
+			case 'user':
+				$this->user = $value;
+				break;
+			case 'pass':
+				$this->pass = $value;
+				break;
 		}
 	}
 }
@@ -573,20 +585,22 @@ class GanProject
 	private $additional_jira=array();
 	public $implements = 'implemented by';
 	
-	function LoadConfiguration()
+	function LoadConfiguration($url)
 	{
-		global $CONF;
+		global $configuration_folder;
 		
 		$obj = new Obj();
-		$conffile = explode(":",$this->jira->url)[1];
+		$conffile = explode(":",$url)[1];
 		$conffile = substr($conffile,2);
-		if(!file_exists(getcwd()."//".$conffile))
+		if(!file_exists($configuration_folder.$conffile))
+		//if(!file_exists(getcwd()."//".$conffile))
 		{
 				echo "Configuration for $conffile not found".EOL;
 				echo "Exiting".EOL;
 				exit();
 		}
-		$xmldata = file_get_contents(getcwd()."//".$conffile);
+		//$xmldata = file_get_contents(getcwd()."//".$conffile);
+		$xmldata = file_get_contents($configuration_folder.$conffile);
 		
 		$cdoc = new DOMDocument();
 		$cdoc->loadXML($xmldata);
@@ -603,13 +617,37 @@ class GanProject
 			$fieldname =  $field->getAttribute('name');
 			$obj->$fieldname = $field->getAttribute('value');
 		}
-		$CONF = $obj;
+		$authentication = $cdoc->documentElement->getElementsByTagName('authentication');	
+		foreach($authentication as $field)
+		{
+			$fieldname =  $field->getAttribute('name');
+			$obj->$fieldname = $field->getAttribute('value');
+		}
+		if(isset($obj->token))
+		{
+			$t=decrypt($obj->token,"abcdef");
+			$info = explode(":",$t);
+			$obj->user = $info[0];
+			$obj->pass = $info[1];
+		}
+		return $obj;
 	}
 	function __construct($doc)
 	{
+		global $CONF;
+		global $OACONF;
+		
 		$this->root=$doc->documentElement; 
 		$this->jira = new JiraInfo($this->root);
-		$this->LoadConfiguration();
+		$conf = $this->LoadConfiguration($this->jira->url);
+		$CONF = $conf;		
+		$this->jira->user = $conf->user;
+		$this->jira->pass = $conf->pass;
+		
+		$OACONF = $this->LoadConfiguration("https://www.openair.com");
+		
+		//https://www.openair.com/api.pl
+		
 		$this->name = $this->root->getAttribute('name');
 		$descriptions = $this->root->getElementsByTagName('description');	
 		foreach($descriptions as $desc)
