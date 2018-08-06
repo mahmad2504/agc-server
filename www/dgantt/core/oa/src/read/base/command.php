@@ -75,15 +75,14 @@ class  ReadCommand
 		return $this->_buildDefaults($dom);
 
     }
-	function toString()
-	{
-		if(!is_array($this->result))
-		{
+     function toString()
+    {
+	   if(!is_array($this->result))
+	   {
 			echo "Failed with error code ".$this->result;
 			return -1;
-		}
-		return 0;
+	    }
+	    return 0;
 	}	
 }
 ?>
-

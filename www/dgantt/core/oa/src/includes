@@ -8,6 +8,4 @@ require_once(OAFOLDER.'/src/read/Projecttask.php');
 require_once(OAFOLDER.'/src/read/Assignedusers.php');
 require_once(OAFOLDER.'/src/read/user.php');
 require_once(OAFOLDER.'/src/read/worklog.php');
-
-
 ?>

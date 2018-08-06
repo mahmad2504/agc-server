@@ -60,11 +60,6 @@ else
 switch(strtolower($cmd))
 {
 	case 'timechart':
-		if($data == 1)
-		{
-			require_once(DGANTTFOLDER.'/modules/'.$cmd.'/json.php');
-		break;
-		}
 	case 'baseline':
 	case 'comment':
 	case 'report':

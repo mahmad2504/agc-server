@@ -1,110 +1,8 @@
 <?php
-if(!isset($_GET['scale']))
-	$scale= 'days';
-else	
+$scale = 'none';
+if(isset($_GET['scale']))
 	$scale = $_GET['scale'];
 
-
-/*
-//[{"desc":"Jira","values":{"from":"\/Date(1320192000000)\/","to":"\/Date(1320192000000)\/","label":"1h","customClass":"ganttRed"}}]
-if($scale=='days')
-{
-	echo '[
-					{
-					"name": "user1",
-					"desc": "Jira",
-					"values": [{
-						"from": "\/Date(1320192000000)\/",
-						"to": "/Date(1320192000000)/",
-						"label": "1h", 
-						"customClass": "ganttRed"
-					},
-					{
-						"from": "/Date(1322611200000)/",
-						"to": "/Date(1322611200000)/",
-						"label": "1h", 
-						"customClass": "ganttRed"
-					}
-					
-					
-					]
-					},
-					{
-					"name": "",
-					"desc": "Open Air",
-					"values": [{
-						"from": "/Date(1320192000000)/",
-						"to": "/Date(1320192000000)/",
-						"label": "1h", 
-						"customClass": "ganttRed"
-					},
-					{
-						"from": "/Date(1322611200000)/",
-						"to": "/Date(1322611200000)/",
-						"label": "1h", 
-						"customClass": "ganttRed"
-					}
-					
-					
-					]
-					}
-					]';
-}
-else if($scale=='weeks')
-{
-	echo '[
-					{
-					"name": "user1",
-					"desc": "Jira",
-					"values": [{
-						"from": "/Date(1320192000000)/",
-						"to": "/Date(1320192000000)/",
-						"label": "2h", 
-						"customClass": "ganttRed"
-					},
-					{
-						"from": "/Date(1322611200000)/",
-						"to": "/Date(1322611200000)/",
-						"label": "2h", 
-						"customClass": "ganttRed"
-					}
-					
-					
-					]
-					}
-					]';
-}
-else if($scale=='months')
-{
-	echo '[
-					{
-					"name": "user1",
-					"desc": "Jira",
-					"values": [{
-						"from": "/Date(1320192000000)/",
-						"to": "/Date(1320192000000)/",
-						"label": "3h", 
-						"customClass": "ganttRed"
-					},
-					{
-						"from": "/Date(1322611200000)/",
-						"to": "/Date(1322611200000)/",
-						"label": "3h", 
-						"customClass": "ganttRed"
-					}
-					
-					
-					]
-					}
-					]';
-}
-					
-return;
-?>
-
-
-
-<?php*/
 /*
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
@@ -160,6 +58,56 @@ else if($scale=='months')
 	$data = GetMonthlyData($worklogs_data);
 	echo json_encode($data);
 	return;
+}
+else
+{
+	GetWeeklyAccumlatedData($worklogs_data);
+}
+
+
+
+function GetWeeklyAccumlatedData($worklogs_data)
+{
+	global $milestone ;
+	$data = array();
+	
+	foreach($worklogs_data as $user=>$worklogs_list)
+	{
+		$count=1;
+		foreach($worklogs_list as $type=>$worklogs)
+		{
+			if($type == 'displayname')
+				continue;
+			
+			$type = 'field'.$count;
+			$count++;
+			//if(!array_key_exists($type,$data))
+			//	$data[$type] = array();
+			
+			foreach($worklogs as $date=>$worklog)
+			{
+				$weekdate = $milestone->GetEndWeekDate($date);
+				if(!array_key_exists($weekdate,$data))
+				{
+					$data[$weekdate] = new Obj();
+					$data[$weekdate]->$type = 0;
+				}
+				if(!isset($data[$weekdate]->$type))
+					$data[$weekdate]->$type = 0;
+						
+				foreach($worklog as $log)
+				{
+					$data[$weekdate]->$type += $log->timespent;
+				}
+			}
+		}
+	}
+
+	//foreach($data as $type=>&$worklogs_array)
+		ksort($data);//SORT_NUMERIC($data,"cmp3");
+	//var_dump($data);
+		
+	return $data;
 }
 function GetEndMonthDate($date)
 {
@@ -240,7 +188,7 @@ function GetMonthlyData($worklogs_data)
 					//echo $log->timespent." ".$timespent.EOL;
 					if(isset($log->key))
 					{
-						$dataObj->url = 'report?date='.$log->started.'&user='.$username."&weekend=Sat";
+						$dataObj->url = null;//'report?date='.$log->started.'&user='.$username."&weekend=Sat";
 						
 						//$dataObj->url[] = $url."/browse/".$log->key;
 						//$dataObj->url[] = $url."/browse/".$log->key;					
