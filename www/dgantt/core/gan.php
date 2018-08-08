@@ -807,6 +807,7 @@ class GanResource
 	private $name;
 	private $email;
 	private $id;
+	private $calendercode = null;
 	private $openair_name=null;
 	private $efficiency = 1.0;
 	private $group = null;
@@ -815,7 +816,7 @@ class GanResource
 	private $tasks=array();
 	private $vacations=array();
 	
-	function __construct($doc,$DOMElement=null,$effciencyid=null,$groupid=null,$parent=null,$openairid=null)
+	function __construct($doc,$DOMElement=null,$effciencyid=null,$groupid=null,$parent=null,$openairid=null,$calenderid=null)
 	{
 		if($DOMElement == null)
 		{
@@ -882,6 +883,18 @@ class GanResource
 			}
 			
 	}
+		if($calenderid != null)
+		{
+			$customproperties = $DOMElement->getElementsByTagName('custom-property');
+			foreach($customproperties as $cp)
+			{
+				if($cp->getAttribute('definition-id') == $calenderid)
+				{
+					$this->calendercode = $cp->getAttribute('value');
+					break;
+				}
+			}
+		}
 	}
 	public function __set($name,$value)
 	{
@@ -891,7 +904,7 @@ class GanResource
 				$this->tasks[$value->Id] = $value;
 				break;
 			case 'Vacation':
-				$this->vacations[] = $value;
+				$this->vacations[$value] = $value;
 				break;
 			case 'Email':
 				$this->email = $value;
@@ -940,6 +953,8 @@ class GanResource
 			case 'Efficiency':
 				return $this->efficiency;
 				break;
+			case 'CalendarCode':
+				return $this->calendercode;
 			default:
 				echo "GanResource cannot get ".$name." property";
 				break;
@@ -960,6 +975,74 @@ class GanResources
 {
 	private $list=array();
 	private $doc;
+	function ReadUserCalender($resource)
+	{
+		global $GAN_FILE;
+		$data = array();
+		$filename = dirname($GAN_FILE)."/".$resource->Name.".cal";
+		if(file_exists($filename))
+		{
+			//echo "Reading user calender".$resource->Name.EOL;
+			
+			$handle = fopen($filename, "r");
+			while (($line = fgets($handle)) !== false) 
+			{
+				$d = explode(":",$line);
+				if(count($d)==2)
+					$hdate = explode(":",$line)[1];
+				
+				$hdate = strtotime($hdate);
+				if($hdate >= strtotime('today'))
+				{
+					$hdate = date('Y-m-d', $hdate);
+					$data[$hdate] = $hdate;
+				}
+			// process the line read.
+			}
+			fclose($handle);
+		} 
+		return $data;
+	}
+	function ReadCountryCalender($resource,$calender_code)
+	{
+		global $configuration_folder;
+		global $GAN_FILE;
+		
+		$filename_p1 = dirname($GAN_FILE)."/".strtolower($calender_code).".cal";
+		
+		$data = array();
+		$filename_p2 = $configuration_folder.strtolower($calender_code).".cal";
+		
+		if(file_exists($filename_p1))
+			$filename = $filename_p1;
+		else
+			$filename = $filename_p2;
+
+		if(file_exists($filename))
+		{
+			$handle = fopen($filename, "r");
+			while (($line = fgets($handle)) !== false) 
+			{
+				$d = explode(":",$line);
+				if(count($d)==2)
+					$hdate = explode(":",$line)[1];
+				
+				$hdate = strtotime($hdate);
+				if($hdate >= strtotime('today'))
+				{
+					$hdate = date('Y-m-d', $hdate);
+					$data[$hdate] = $hdate;
+				}
+			// process the line read.
+			}
+			fclose($handle);
+		} 
+		else
+		{
+			echo "Warning: Failed to load calender ".$calender_code." for user ".$resource->Name.EOL;
+		}
+		return $data;
+	}
 	function __construct($doc)
 	{
 		$this->doc =  $doc;
@@ -969,6 +1052,7 @@ class GanResources
 		$role = "";
 		$groupid = null;
 		$openairid = null;
+		$calendarid=null;
 		$records = $xpath->query('/project/resources/custom-property-definition');
 		foreach ($records as $i => $cd) 
 		{
@@ -984,12 +1068,26 @@ class GanResources
 			{
 				$openairid = $cd->getAttribute('id');
 			}
+			else if( strtolower($cd->getAttribute('name')) == 'calendar')
+			{
+				$calendarid = $cd->getAttribute('id');
+			}
 		}
 		$records = $xpath->query('/project/resources/resource');
 		foreach ($records as $i => $record) 
 		{
-			$resource = new GanResource($doc,$record,$efficiencyid,$groupid,$this,$openairid);
+			$resource = new GanResource($doc,$record,$efficiencyid,$groupid,$this,$openairid,$calendarid);
 			$this->list[$resource->Id] = $resource; 
+			$ccalender = $this->ReadUserCalender($resource);
+			foreach($ccalender as $hdate)
+				$this->list[$resource->Id]->Vacation = $hdate;
+			
+			if($this->list[$resource->Id]->CalendarCode != null)
+			{
+				$ccalender = $this->ReadCountryCalender($this->list[$resource->Id],$this->list[$resource->Id]->CalendarCode);
+				foreach($ccalender as $hdate)
+					$this->list[$resource->Id]->Vacation = $hdate;
+			}
 		}
 		// Read the vacations of resources
 		$records = $xpath->query('/project/vacations/vacation');
@@ -1005,7 +1103,6 @@ class GanResources
 			{
 				$this->list[$resourceid]->Vacation = $date->format("Y-m-d");
 			}
-			
 		}
 	}
 	public function FindResource($name)
@@ -1323,7 +1420,9 @@ class GanTask
 								$this->deadlinenode = $child;
 							}
 							else
+							{
 								echo "Warning : ".$this->Name." @".$this->Id." had invalid deadline. Ignoring".EOL;
+						        }
 						}
 						break;
 					case 'tracking start':
@@ -1382,7 +1481,10 @@ class GanTask
 					//	echo "Warning : Unable to set deadline for ".$this->Name." @".$this->Id.EOL;
 				}
 				else
-					echo "Warning : ".$this->Name." @".$this->Id." had invalid deadline ".$value." Ignoring".EOL;
+				{
+					$url = '<a href="'.$this->project->Jira->url.'/browse/'.$this->JiraId.'">'.$this->JiraId.'</a>';
+					echo "Warning : ".$url." ".$this->Name." @".$this->Id." has invalid duedate (".$value.") in Jira.Ignoring".EOL;
+				}
 				return;
 			case 'ForcePlannedResource':
 				$this->forceplannedresource=$value;

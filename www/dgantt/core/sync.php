@@ -82,7 +82,7 @@ class Sync
 		}
 		if($found == 0)
 		{
-			echo "Warning: No worklog found for user <span style='color:red;'>".$resource->Name."(".$resource->OpenAirName.")</span> in openair".EOL;	
+			echo "Info: OA Timesheet not found for user <span style='color:red;'>".$resource->Name."(id=".$resource->OpenAirName.")</span>".EOL;	
 		}
 		return 1;
 	}
@@ -95,7 +95,6 @@ class Sync
 		try 
 		{
 			$gan = new Gan($GAN_FILE,$rebuild);
-			
 		} 
 		catch ( Exception $e ) 
 		{
@@ -331,11 +330,10 @@ class Sync
 		}
 			else
 			{
-				echo "Overriding resource=".$resource->Name." for ".$jtask->key.EOL;
+				$url = '<a href="'.$gan->Jira->url.'/browse/'.$task->JiraId.'">'.$task->JiraId.'</a>';
+				echo "Info: Overriding resource ".$resource->Name." for ".$url." @".$task->Id.EOL;
 				$task->ForcePlannedResource = 2;
 			}
-			
-			
 		}
 		if($jtask->timeoriginalestimate != null)
 		{
@@ -690,8 +688,16 @@ class Sync
 		}
 		foreach($duplicates as $task)
 		{
-
-		    echo "Warning: ".$task->Name." Appearing in multiple queries @ ";
+			if(strlen($task->JiraId)>0)
+			{
+				//<a href="url">link text</a>
+				$url = '<a href="'.$gan->Jira->url.'/browse/'.$task->JiraId.'">'.$task->JiraId.'</a>';
+				echo "Warning: ".$url." ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
+			}
+			else
+			{
+				echo "Warning: ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
+			}
 			$delim = "";
 											
 			foreach($queries as $query)

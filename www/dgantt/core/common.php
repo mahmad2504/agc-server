@@ -32,7 +32,7 @@ if (!is_dir($organization_folder)) {
    exit();
 }
 
-$configuration_folder = $organization_folder."/configuration/";
+$configuration_folder = $organization_folder."/configuration/"; // end backslash must
 $project_folder = $organization_folder."/".$project_name;
 $gan_folder = DATA_FOLDER."/projects/".$organization."/".$project_name;
 

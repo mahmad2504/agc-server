@@ -43,7 +43,9 @@ class OpenAirIfc
 			return;
 		if($rebuild==1)
 		{
-			echo "Rebuilding OpenAir Database".EOL;
+			echo "<p style='color:green;'>Rebuilding OpenAir Database</p>";
+			
+			//echo "Rebuilding OpenAir Database".EOL;
 			
 			$oa = new OpenAir($OACONF->api_key,"default",'1.0','agc','1.1',$OACONF->url);
 			$auth = new Auth($OACONF->organization,$OACONF->user,$OACONF->pass);
@@ -61,7 +63,7 @@ class OpenAirIfc
 			}
 			else
 			{
-				echo "Warning :".$name." is not an openair project".EOL;
+				echo "Warning :Project name[".$name."] in plan is not an openair project".EOL;
 				return;
 			}
 			$users = array();
@@ -79,7 +81,7 @@ class OpenAirIfc
 			foreach($worklogs_submitted as &$worklog_submitted)
 			{
 				$worklog_submitted['approved'] = 0;
-				$worklog_submitted['username'] = $worklog_submitted[$worklog_submitted['userid']];
+				$worklog_submitted['username'] = $users[$worklog_submitted['userid']];
 				$this->worklogs[] = $worklog_submitted;
 			}
 			
