@@ -52,7 +52,11 @@ switch($argc)
 		exit();
 	
 }
-
+if($project_name == 'none')
+{
+	if($cmd == 'rmo')
+		$project_name = 'rmo';
+}
 if(!isset($force))
 	$force = 0;
 /*echo $organization.EOL;

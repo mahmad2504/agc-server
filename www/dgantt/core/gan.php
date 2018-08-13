@@ -989,13 +989,35 @@ class GanResources
 			{
 				$d = explode(":",$line);
 				if(count($d)==2)
+				{
 					$hdate = explode(":",$line)[1];
+					$range = explode("-",$hdate);
+					if(count($range)==2)
+					{
+						$sdate = strtotime($range[0]);
+						$edate = strtotime($range[1]);
+						if( ($sdate >= strtotime('today'))||($edate >= strtotime('today') ))
+						{
+							$sdate = date('Y-m-d', $sdate);
+							$edate = date('Y-m-d', $edate);
+							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
+
+							$data[$sdate] = $edate;
+						}
 				
+					}
+					else
+					{
 				$hdate = strtotime($hdate);
 				if($hdate >= strtotime('today'))
 				{
+							$edate = date('Y-m-d', $hdate);
+							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
+
 					$hdate = date('Y-m-d', $hdate);
-					$data[$hdate] = $hdate;
+							$data[$hdate] = $edate;
+						}
+					}
 				}
 			// process the line read.
 			}
@@ -1025,13 +1047,35 @@ class GanResources
 			{
 				$d = explode(":",$line);
 				if(count($d)==2)
+				{
 					$hdate = explode(":",$line)[1];
+					$range = explode("-",$hdate);
+					if(count($range)==2)
+					{
+						$sdate = strtotime($range[0]);
+						$edate = strtotime($range[1]);
+						if( ($sdate >= strtotime('today'))||($edate >= strtotime('today') ))
+						{
+							$sdate = date('Y-m-d', $sdate);
+							$edate = date('Y-m-d', $edate);
+							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
+
+							$data[$sdate] = $edate;
+						}
 				
+					}
+					else
+					{
 				$hdate = strtotime($hdate);
 				if($hdate >= strtotime('today'))
 				{
+							$edate = date('Y-m-d', $hdate);
+							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
+
 					$hdate = date('Y-m-d', $hdate);
-					$data[$hdate] = $hdate;
+							$data[$hdate] = $edate;
+						}
+					}
 				}
 			// process the line read.
 			}
@@ -1079,14 +1123,28 @@ class GanResources
 			$resource = new GanResource($doc,$record,$efficiencyid,$groupid,$this,$openairid,$calendarid);
 			$this->list[$resource->Id] = $resource; 
 			$ccalender = $this->ReadUserCalender($resource);
-			foreach($ccalender as $hdate)
-				$this->list[$resource->Id]->Vacation = $hdate;
+			foreach($ccalender as $start=>$end)
+			{
+				$interval = DateInterval::createFromDateString('1 day');
+				$daterange = new DatePeriod( new DateTime($start), $interval, new DateTime($end));
+				foreach($daterange as $date)
+				{
+					$this->list[$resource->Id]->Vacation = $date->format("Y-m-d");
+				}
+			}
 			
 			if($this->list[$resource->Id]->CalendarCode != null)
 			{
 				$ccalender = $this->ReadCountryCalender($this->list[$resource->Id],$this->list[$resource->Id]->CalendarCode);
-				foreach($ccalender as $hdate)
-					$this->list[$resource->Id]->Vacation = $hdate;
+				foreach($ccalender as $start=>$end)
+				{
+					$interval = DateInterval::createFromDateString('1 day');
+					$daterange = new DatePeriod( new DateTime($start), $interval, new DateTime($end));
+					foreach($daterange as $date)
+					{
+						$this->list[$resource->Id]->Vacation = $date->format("Y-m-d");
+					}
+				}
 			}
 		}
 		// Read the vacations of resources

@@ -184,4 +184,27 @@ function ReadDirectory($directory)
 	}
 	return $files;
 }
+function ReadFiles($directory,$filter)
+{
+	$files = array();
+	$dir = opendir($directory); // open the cwd..also do an err check.
+	while(false != ($file = readdir($dir))) 
+	{
+		if(($file != ".") and ($file != "..")) 
+		{
+			//echo $file." ".is_dir($directory.$file).EOL;
+			//echo  is_dir($directory."//".$file).EOL;
+			
+			if(!is_dir($directory."//".$file))
+			{
+				if( strpos( $file, $filter ) !== false) 
+				{
+					$files[] = $file; // put in array.
+				}
+			}
+		}
+		//natsort($files); // sort.
+	}
+	return $files;
+}
 ?>

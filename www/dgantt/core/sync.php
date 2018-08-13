@@ -715,6 +715,15 @@ class Sync
 		{
 			if($query->IsStructure)
 				$this->ValidateStructure($query);
+			else
+			{
+				$jtasks = $query->Jiratasks;
+				if($jtasks != null)
+				{
+					//echo "Filter ".EOL;
+					$this->FindTaskInChildren($query->Task,$jtasks,$query->Task);
+				}	
+			}
 		}
 		return;
 		foreach($queries as $query)

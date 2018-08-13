@@ -35,6 +35,13 @@ class Response
 	{
 		return $val['Date']['year']."-".$val['Date']['month']."-".$val['Date']['day'];
 	}
+	public function ParseBillable($val)
+	{
+		if($val == 1)
+			return 1;
+		else
+			return 0;
+	}
 	private function PrepareOutput($args,$debug=0)
 	{
 		$data = array();
@@ -60,6 +67,11 @@ class Response
 				{
 					if(strtolower($args[$j]) == 'date')
 						$returndata[$i][$args[$j]]=$this->DateToString($data[$j][$i]);
+					else if(strtolower($args[$j]) == 'non_billable')
+					{
+						$returndata[$i][$args[$j]]=$this->ParseBillable($data[$j][$i]);
+						
+					}
 					else
 						$returndata[$i][$args[$j]]=$data[$j][$i];
 					if($debug)

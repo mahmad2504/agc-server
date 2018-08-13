@@ -587,6 +587,8 @@ class Analytics
 		
 				$wlg->timespent = $worklog['decimal_hours']/8;
 				$wlg->approved = $worklog['approved'];
+				$wlg->nonbillable = $worklog['nonbillable'];
+				//echo $wlg->nonbillable.EOL;
 				//if($name == 2316)
 				//{
 				//	var_dump($worklog);

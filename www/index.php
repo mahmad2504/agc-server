@@ -49,6 +49,7 @@ define('REPORT_FOLDER', $prefix.DGANTTFOLDER."/modules/report");
 define('COMMENT_FOLDER', $prefix.DGANTTFOLDER."/modules/comment");
 define('BASELINE_FOLDER', $prefix.DGANTTFOLDER."/modules/baseline");
 define('TIMECHART_FOLDER',$prefix.DGANTTFOLDER."/modules/timechart");
+define('RMO_FOLDER',$prefix.DGANTTFOLDER."/modules/rmo");
 
 
 if(isset($baseline))
@@ -72,6 +73,7 @@ switch(strtolower($cmd))
 	case 'calendar':
 	case 'status':
 	case 'auditreport':
+	case 'rmo':
 		require_once(DGANTTFOLDER.'/modules/'.$cmd.'/index.php');
 		break;
 	default:

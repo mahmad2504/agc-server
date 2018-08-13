@@ -177,12 +177,15 @@ function GetMonthlyData($worklogs_data)
 				$dataObj->url = null;
 				$timespent = 0.0;
 				$dataObj->requested = 0;
+				$nonbillable = 0;
 				foreach($worklog as $log)
 				{				
 					if($log->approved == 0)
 					{
 						$dataObj->requested = 1;
 					}
+					if( isset($log->nonbillable))
+						$nonbillable = $log->nonbillable;
 					
 					$timespent += $log->timespent;
 					//echo $log->timespent." ".$timespent.EOL;
@@ -215,6 +218,8 @@ function GetMonthlyData($worklogs_data)
 				
 				if($dataObj->requested)
 					$value->customClass = "ganttRed";
+				if($nonbillable==1)
+					$value->customClass = "ganttYellow";
 				
 				$obj->values[] = $value;
 				//echo $timespent.EOL;
@@ -283,12 +288,15 @@ function GetWeeklyData($worklogs_data)
 				$dataObj->url = null;
 				$timespent = 0.0;
 				$dataObj->requested = 0;
+				$nonbillable = 0;
 				foreach($worklog as $log)
 				{				
 					if($log->approved == 0)
 					{
 						$dataObj->requested = 1;
 					}
+					if( isset($log->nonbillable))
+						$nonbillable = $log->nonbillable;
 					
 					$timespent += $log->timespent;
 					//echo $log->timespent." ".$timespent.EOL;
@@ -319,6 +327,10 @@ function GetWeeklyData($worklogs_data)
 				
 				if($dataObj->requested)
 					$value->customClass = "ganttRed";
+				
+				if($nonbillable==1)
+					$value->customClass = "ganttYellow";
+				
 				
 				$obj->values[] = $value;
 				//echo $timespent.EOL;
@@ -406,7 +418,11 @@ function GetDailyData($worklogs_data)
 			
 			if($dataObj->requested)
 				$value->customClass = "ganttRed";
-			
+				if(isset($log->nonbillable))
+				{
+					if($log->nonbillable==1)
+						$value->customClass = "ganttYellow";
+				}
 			$obj->values[] = $value;
 			//echo $timespent.EOL;
 		}

@@ -369,12 +369,31 @@ class OpenAir
 	}
 	public function ReadWorkLogsByProjectId($projectid,$approved=false)
 	{
+		$nonbillabletaskids = array();
 		$h1 = $this->ReadTasksByProjectId($projectid);
 		$this->Execute();
+		$tasks = $h1->Data('id','name','non_billable');
+		foreach($tasks as $task)
+		{
+			if($task['non_billable'] == 1)
+				$nonbillabletaskids[] = $task['id']; 
+		}
 		$h2 = $this->ReadWorkLogsByProjectTaskId($approved,$h1,'id');
 		$this->Execute();
-		//$h2->toString('date','userid','decimal_hours');
-		return $h2->Data('id','date','userid','decimal_hours');
+		//$h2->toString('projecttaskid','date','userid','decimal_hours');
+		$worklogs = $h2->Data('projecttaskid','id','date','userid','decimal_hours');
+		foreach($worklogs as &$worklog)
+		{
+			foreach($nonbillabletaskids as $nbtid)
+			{
+				if($nbtid == $worklog['projecttaskid'])
+					$worklog['nonbillable'] = 1;
+				else
+					$worklog['nonbillable'] = 0;
+			}
+		}
+		//var_dump($worklogs);
+		return $worklogs;
 	}
 	public function ReadProjectId($projectname)
 	{
@@ -412,6 +431,7 @@ class OpenAir
 		$h3 = $this->ReadUserById($h2,'userid');
 		$this->Execute();
 		$data = $h3->Data('id','name','currency');
+		$h3->toString('id','name','currency');
 		return $data;
 	}
 }

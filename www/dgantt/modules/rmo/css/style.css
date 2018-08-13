@@ -1,7 +1,7 @@
 .gantt {
     width: 100%;
     margin: 20px auto;
-    border: 14px solid #ddd;
+    border: 6px solid #ddd;
     position: relative;
 -webkit-border-radius: 6px;
    -moz-border-radius: 6px;
@@ -9,6 +9,7 @@
 -webkit-box-sizing: border-box;
    -moz-box-sizing: border-box;
         box-sizing: border-box;
+	border-color: 	black;
 }
 
 .gantt:after {
@@ -49,18 +50,20 @@
 
 .fn-gantt .leftPanel {
     float: left;
-    width: 225px;
+    width: 250px;
+    color: #18D;
     overflow: hidden;
     border-right: 1px solid #DDD;
     position: relative;
     z-index: 20;
+	font-family: "Roboto Slab", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .fn-gantt .leftPanel .fn-label {
     display: inline-block;
     margin: 0 0 0 5px;
     color: #484A4D;
-    width: 110px;
+    width: 250px;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -72,12 +75,19 @@
 .fn-gantt .leftPanel .name, .fn-gantt .leftPanel .desc {
     float: left;
     height: 24px;
-    width: 50%;
-    background-color: #f6f6f6;
+    width: 65%;
+    background-color: #FFF8DC;
+}
+
+.fn-gantt .leftPanel .desc {
+    width: 35%;
+	background-color: #FFF8DC;
+	font-size: smaller;
 }
 
 .fn-gantt .leftPanel .name {
     font-weight: bold;
+	text-transform: capitalize;
 }
 
 .fn-gantt .leftPanel .fn-wide, .fn-gantt .leftPanel .fn-wide .fn-label {
@@ -209,19 +219,6 @@
     text-align: center;
     font-size: 11px;
 }
-.fn-gantt .ganttWhite {
-    background-color: #ffffff;
-}
-.fn-gantt .ganttWhite .fn-label {
-    color: #ffffff !important;
-}
-
-.fn-gantt .ganttDarkBlue {
-    background-color: #95C8D8;
-}
-.fn-gantt .ganttDarkBlue .fn-label {
-    color: #000000 !important;
-}
 
 .fn-gantt .ganttRed {
     background-color: #F9C4E1;
@@ -244,12 +241,6 @@
     color: #714715 !important;
 }
 
-.fn-gantt .ganttYellow {
-    background-color: #F0E68C;
-}
-.fn-gantt .ganttYellow .fn-label {
-    color: #714715 !important;
-}
 
 /* === BOTTOM NAVIGATION === */
 

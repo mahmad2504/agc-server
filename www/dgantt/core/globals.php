@@ -24,6 +24,8 @@ $TJ_FILE = $TJ_OUTPUT_FOLDER."/plan.tjp";
 $JS_GANTT_FILE = $PLAN_FOLDER."/jsgantt.xml";
 $LOG_FOLDER = $PLAN_FOLDER."/logs/";
 $BASELINE_FOLDER = $PLAN_FOLDER."/baselines/";
+$RMO_FILENAME = "data.rmo";
+
 
 if(isset($baseline))
 {
