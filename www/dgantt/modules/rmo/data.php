@@ -10,6 +10,8 @@
 	$alldata = array();
 	foreach($files as $filename)
 	{
+		$team = $filename = pathinfo($filename, PATHINFO_FILENAME); 
+		
 		$filename = dirname($GAN_FILE)."/".$filename;
 		$data = file_get_contents($filename);
 		$data = json_decode($data);
@@ -198,6 +200,8 @@
 		$i=0;
 		foreach($data as $project)
 		{
+			if($project->name == 'FTO')
+				continue;
 			$objs = BuildJsonObjectProject($i,$project);
 			$i++;
 			foreach($objs as $obj)

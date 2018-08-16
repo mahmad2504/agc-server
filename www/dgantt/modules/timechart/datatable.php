@@ -55,7 +55,10 @@ foreach($data as $date=>$obj)
 	$week = $date->format("W");
 	$row[] = (String)$week;
 	
+	if(isset($obj->field1))
 	$row[] =  $obj->field1*8;
+	else
+		$row[] = 0;
 	if(isset($obj->field2))
 		$row[] =  $obj->field2*8;
 	else

@@ -355,6 +355,10 @@ class Sync
 			if($jtask->timespent != null)
 				$task->Timespent  = $jtask->timespent/(60*60*8); // In days
 		}
+		if(count($jtask->issuelinks[DEPENDENCY_DEPENDS])>0)
+			$gan->AddDependency($task,$jtask->issuelinks[DEPENDENCY_DEPENDS]);
+		
+		//var_dump($jtask->issuelinks[DEPENDENCY_DEPENDS]);
 		$jtask->Gtask = $task;
 		$task->Jtask = $jtask;
 	}

@@ -44,7 +44,7 @@
             $(".gantt").gantt({
 				source:
 				<?php 
-				$view='project';
+				$view='user';
 				if(isset($_GET['view']))
 					$view = $_GET['view'];
 				
@@ -57,26 +57,26 @@
 					echo '"rmo?data=1&view='.$view.'"';
 				?>,
                 navigate: "scroll",
-                scale: "weeks",
+                scale: "days",
                 maxScale: "weeks",
                 minScale: "days",
                 itemsPerPage: 10,
                 scrollToToday: false,
-                useCookie: true,
+                useCookie: false,
                 onItemClick: function(data) {
-                    alert("Item clicked - show some details");
+                    //alert("Item clicked - show some details");
                 },
                 onAddClick: function(dt, rowId) {
-                    alert("Empty space clicked - add an item!");
+                    //alert("Empty space clicked - add an item!");
                 },
                 onRender: function() {
-                    if (window.console && typeof console.log === "function") {
-                        console.log("chart rendered");
-                    }
+                   // if (window.console && typeof console.log === "function") {
+                   //     console.log("chart rendered");
+                   // }
                 }
             });
 
-            $(".gantt").popover({
+            /*$(".gantt").popover({
                 selector: ".bar",
                 title: function _getItemText() {
                     return this.textContent;
@@ -84,9 +84,9 @@
                 content: "Here's some useful information.",
                 trigger: "hover",
                 placement: "auto right"
-            });
+            });*/
 
-            prettyPrint();
+            //prettyPrint();
 
         });
     </script>

@@ -61,7 +61,8 @@ else if($scale=='months')
 }
 else
 {
-	GetWeeklyAccumlatedData($worklogs_data);
+	$data = GetWeeklyAccumlatedData($worklogs_data);
+	//var_dump($data);
 }
 
 
@@ -73,16 +74,16 @@ function GetWeeklyAccumlatedData($worklogs_data)
 	
 	foreach($worklogs_data as $user=>$worklogs_list)
 	{
-		$count=1;
 		foreach($worklogs_list as $type=>$worklogs)
 		{
 			if($type == 'displayname')
 				continue;
 			
-			$type = 'field'.$count;
-			$count++;
-			//if(!array_key_exists($type,$data))
-			//	$data[$type] = array();
+		         if($type=='Jira')
+				 $type = 'field1';
+			 else
+				$type = 'field2';
+
 			
 			foreach($worklogs as $date=>$worklog)
 			{

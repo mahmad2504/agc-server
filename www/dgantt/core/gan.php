@@ -2200,6 +2200,45 @@ class Gan
 	{
 		$this->tasks->UpdateTasks();
 	}
+	function AddDependency($task,$key_array)
+	{
+		$didarray = array();
+		//echo count($task->Predecessors).EOL;
+		foreach($task->Predecessors as $pt)
+		{
+			//echo $pt->Id.EOL;
+			$didarray[$pt->Id] = $pt->Id;
+		}
+		
+		//if(count($didarray)>0)
+		//echo $task->JiraId." ALREADY depends on these ids ".implode(",",$didarray).EOL;
+		$tlist = $this->TaskList;
+		foreach($key_array as $key)
+		{
+			foreach($tlist as $t)
+			{
+				if($t->JiraId == $key)
+				{
+					if(array_key_exists($t->Id,$didarray))
+					{
+						//echo "Ignoring adding dependency of ".$t->JiraId."[".$t->Id."]"." for ".$task->JiraId.EOL;
+					}
+					else
+					{
+						echo "From Jira Adding dependency for ".$task->JiraId."[".$task->Id."] ---- ".$t->JiraId."[".$t->Id."]".EOL;
+						$task->Predecessor = $t;
+						break;
+					}
+				}
+			}
+			//var_dump($t);
+		}
+		//Validate
+		if(count($key_array) !=  count($task->Predecessors))
+		{
+			echo "Warning :Dependencies for ".$task->JiraId." mismatch in Jira and Plan".EOL;
+		}
+	}
 	function AddTask($name,$tag,$ptask=null)
 	{
 		$tstart = $this->Start;
