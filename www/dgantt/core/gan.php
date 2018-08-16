@@ -582,6 +582,7 @@ class GanProject
 	private $root;
 	private $isarchived=0;
 	private $weekend =  'Tue';
+	private $jiradependencies = 0;
 	private $additional_jira=array();
 	public $implements = 'implemented by';
 	
@@ -660,6 +661,12 @@ class GanProject
 				$fields = explode("=",$d);
 				switch(strtolower($fields[0]))
 				{
+					case 'jiradependencies':
+						if($fields[1] == 1)
+							$this->jiradependencies = 1;
+						else
+							$this->jiradependencies = 0;
+						break;
 					case 'archived':
 						$this->isarchived = 1;
 						break;
@@ -725,6 +732,9 @@ class GanProject
 	{
 		switch($name)
 		{
+			case 'JiraDependencies':
+				return $this->jiradependencies;
+				break;
 			case 'Weekend':
 				return $this->weekend;
 				break;
@@ -2215,6 +2225,7 @@ class Gan
 		$tlist = $this->TaskList;
 		foreach($key_array as $key)
 		{
+			$found=0;
 			foreach($tlist as $t)
 			{
 				if($t->JiraId == $key)
@@ -2227,9 +2238,14 @@ class Gan
 					{
 						echo "From Jira Adding dependency for ".$task->JiraId."[".$task->Id."] ---- ".$t->JiraId."[".$t->Id."]".EOL;
 						$task->Predecessor = $t;
+						$found=1;
 						break;
 					}
 				}
+			}
+			if($found==0)
+			{
+				echo "Warning: Jira dependency ".$t->JiraId." for ".$task->JiraId."[".$task->Id."] is not in plan".EOL;
 			}
 			//var_dump($t);
 		}

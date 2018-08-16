@@ -147,7 +147,6 @@ class Filter {
 				$query = $query." and updated>'".$last_update_date."'";
 			
 			$tasks  = Jirarest::Search($query,1000,$fields);
-			
 			if($tasks == null)
 			{
 				if(Jirarest::$offline == 1)
@@ -209,7 +208,6 @@ class Filter {
 		{
 			mkdir($PLAN_FOLDER);
 		}
-
 		file_put_contents( $name, json_encode( $this->tasks ) );
 		$data = file_get_contents($name);
 		$this->tasks = json_decode( $data );

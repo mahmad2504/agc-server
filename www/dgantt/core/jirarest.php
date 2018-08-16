@@ -591,13 +591,12 @@ class Jirarest
 			case 'issuelinks':
 				//echo $data['key'].EOL;
 				$issuelinks = array();
-				$issuelinks = array();
 				$issuelinks[0] = array();
 				$issuelinks[1] = array();
-				$issuelinks[LINK_IMPLEMENTS] = array();
-				$issuelinks[LINK_TESTS] = array();
-				$issuelinks[LINK_IMPLEMENTS_BACKWARD] = array();
-				
+				$issuelinks[2] = array();
+				$issuelinks[3] = array();
+				$issuelinks[4] = array();
+				$issuelinks[5]=array();
 				
 				//$issuelinks['depends'] = array();
 				//var_dump($data['fields']);
