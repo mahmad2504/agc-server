@@ -2233,6 +2233,8 @@ class Gan
 					if(array_key_exists($t->Id,$didarray))
 					{
 						//echo "Ignoring adding dependency of ".$t->JiraId."[".$t->Id."]"." for ".$task->JiraId.EOL;
+						$found=1;
+						break;
 					}
 					else
 					{
