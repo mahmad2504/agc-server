@@ -439,7 +439,7 @@ class Query
 		//echo $task->Name." ".$task->IsParent.EOL;
 		$md5 = md5($this->njql);
 		//echo $njql." ".$md5.EOL;
-		$this->filterfile = $PLAN_FOLDER."\\".$md5;
+		$this->filterfile = $PLAN_FOLDER."/".$md5;
 		$this->rebuild = $rebuild;
 		
 		

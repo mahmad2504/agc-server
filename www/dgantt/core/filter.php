@@ -190,8 +190,9 @@ class Filter {
 					$this->cached=1;
 				else
 				{
-					
-					touch($name);
+					if(file_exists($name))
+						unlink($name);
+					//touch($name);
 				}
 				return;
 			}

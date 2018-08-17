@@ -615,8 +615,11 @@ class Analytics
 	{
 		foreach($resources as $resource)
 		{
+			if($selected_authors != null)
+			{
 			if(!array_key_exists($resource->Name,$selected_authors))
 				continue;
+			}
 			//echo $resource->Name.EOL;
 			if($resource->OpenAirName != null)
 			{
@@ -692,6 +695,7 @@ class Analytics
 	function GetFullTimeSheet()
 	{
 		//OpenAirName
+		global $board;
 		$resources =  $this->gan->Resources;
 		end($this->msdata);
 		$key = key($this->msdata);
@@ -707,11 +711,16 @@ class Analytics
 			exit();
 		}
 		$this->ProcessAllWorkLogs($task);
+		$selected_authors = null;
+		if($board != 'project')
+		{
 		$selected_authors = array();
 		foreach($this->worklogs as $author=>$worklogs)
 		{
 			$selected_authors[$author] = $selected_authors;
 		}
+		}
+		
 		$this->ProcessOpenAirWorklogs($selected_authors,$resources,$this->worklogs);
 		return $this->worklogs;
 		
