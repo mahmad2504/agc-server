@@ -867,10 +867,11 @@ class GanResource
 					$group = explode(",",$group);
 					foreach($group as $name)
 					{
+						$name = trim($name);
 						$resource = $this->parent->FindResource($name);
 						if($resource==null)
 						{
-							echo "Group resource name ".$name." not found";
+							echo "Warning :Group resource name ".$name." not found".EOL;
 						}
 						else
 							$this->group[] = $resource;
