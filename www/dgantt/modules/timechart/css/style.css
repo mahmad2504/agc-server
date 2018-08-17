@@ -215,6 +215,12 @@
 .fn-gantt .ganttWhite .fn-label {
     color: #ffffff !important;
 }
+.fn-gantt .ganttTransparent {
+    background-color: #ffffff;
+}
+.fn-gantt .ganttTransparent .fn-label {
+    color: #000000 !important;
+}
 
 .fn-gantt .ganttDarkBlue {
     background-color: #95C8D8;

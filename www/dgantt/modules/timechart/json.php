@@ -40,7 +40,34 @@ $url = $milestone->gan->Jira->url;
 
 $worklogs_data = $milestone->GetFullTimeSheet();
 
-
+$data = GetWeeklyAccumlatedData($worklogs_data);
+$selected_weekdates= array();
+foreach($data as $date=>$obj)
+{
+	if(isset($obj->field1))
+		if($obj->field1 > 0)
+			$selected_weekdates[$date] = $date;
+}
+//var_dump($selected_weekdates);
+foreach($worklogs_data as $user=>$type_data)
+{
+	foreach($type_data['Open Air'] as $worklogs)
+	{
+		foreach($worklogs as $worklog)
+		{
+			$weekdate = $milestone->GetEndWeekDate($worklog->started);
+			if(array_key_exists($weekdate,$selected_weekdates))
+			{
+				
+			}
+			else
+			{
+				$worklog->na = 1;
+			}
+		}
+	}
+}
+//var_dump($worklogs_data);
 if($scale=='days')
 {
 	$data = GetDailyData($worklogs_data);
@@ -70,6 +97,7 @@ else
 function GetWeeklyAccumlatedData($worklogs_data)
 {
 	global $milestone ;
+	global $board;
 	$data = array();
 	
 	foreach($worklogs_data as $user=>$worklogs_list)
@@ -106,6 +134,16 @@ function GetWeeklyAccumlatedData($worklogs_data)
 
 	//foreach($data as $type=>&$worklogs_array)
 		ksort($data);//SORT_NUMERIC($data,"cmp3");
+	
+	// Remove openair logs  if there is some sub board and Jira logs are absent 
+	foreach($data as $date=>$obj)
+	{
+		if($board != 'project')
+		{
+			if(! isset($obj->field1))
+				$obj->field2 = 0;
+		}
+	}
 	//var_dump($data);
 		
 	return $data;
@@ -179,6 +217,7 @@ function GetMonthlyData($worklogs_data)
 				$timespent = 0.0;
 				$dataObj->requested = 0;
 				$nonbillable = 0;
+				$na=0;
 				foreach($worklog as $log)
 				{				
 					if($log->approved == 0)
@@ -187,7 +226,8 @@ function GetMonthlyData($worklogs_data)
 					}
 					if( isset($log->nonbillable))
 						$nonbillable = $log->nonbillable;
-					
+					if( isset($log->na))
+						$na++;
 					$timespent += $log->timespent;
 					//echo $log->timespent." ".$timespent.EOL;
 					if(isset($log->key))
@@ -222,6 +262,10 @@ function GetMonthlyData($worklogs_data)
 				if($nonbillable==1)
 					$value->customClass = "ganttYellow";
 				
+				if($na>0)
+				{
+					$value->customClass = "ganttTransparent";
+				}
 				$obj->values[] = $value;
 				//echo $timespent.EOL;
 			}
@@ -290,6 +334,7 @@ function GetWeeklyData($worklogs_data)
 				$timespent = 0.0;
 				$dataObj->requested = 0;
 				$nonbillable = 0;
+				$na = 0;
 				foreach($worklog as $log)
 				{				
 					if($log->approved == 0)
@@ -298,6 +343,8 @@ function GetWeeklyData($worklogs_data)
 					}
 					if( isset($log->nonbillable))
 						$nonbillable = $log->nonbillable;
+					if( isset($log->na))
+						$na++;
 					
 					$timespent += $log->timespent;
 					//echo $log->timespent." ".$timespent.EOL;
@@ -332,7 +379,10 @@ function GetWeeklyData($worklogs_data)
 				if($nonbillable==1)
 					$value->customClass = "ganttYellow";
 				
-				
+				if($na>0)
+				{
+					$value->customClass = "ganttTransparent";
+				}
 				$obj->values[] = $value;
 				//echo $timespent.EOL;
 			}
@@ -424,6 +474,12 @@ function GetDailyData($worklogs_data)
 					if($log->nonbillable==1)
 						$value->customClass = "ganttYellow";
 				}
+				
+				if(isset($log->na))
+				{
+					$value->customClass = "ganttTransparent";
+				}
+				
 			$obj->values[] = $value;
 			//echo $timespent.EOL;
 		}

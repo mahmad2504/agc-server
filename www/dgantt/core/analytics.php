@@ -611,10 +611,12 @@ class Analytics
 		}*/
 		return $data;
 	}
-	private function ProcessOpenAirWorklogs($resources,$worklogs)
+	private function ProcessOpenAirWorklogs($selected_authors,$resources,$worklogs)
 	{
 		foreach($resources as $resource)
 		{
+			if(!array_key_exists($resource->Name,$selected_authors))
+				continue;
 			//echo $resource->Name.EOL;
 			if($resource->OpenAirName != null)
 			{
@@ -639,14 +641,12 @@ class Analytics
 	private function ProcessAllWorkLogs($task)
 	{
 		//$date = date('m/d/Y', time());
-		
 		if ($task->Jtask  != null)
 		{
 			foreach($task->Jtask->worklogs as $worklog)
 			{
 				$worklog->key = $task->Jtask->key;
 				$worklog->approved = 1;
-				//echo $worklog->author." ".$worklog->started.EOL;
 				
 				if(array_key_exists($worklog->author,$this->worklogs))
 				{
@@ -693,7 +693,6 @@ class Analytics
 	{
 		//OpenAirName
 		$resources =  $this->gan->Resources;
-		
 		end($this->msdata);
 		$key = key($this->msdata);
 		$task = $this->msdata[$key];
@@ -708,7 +707,12 @@ class Analytics
 			exit();
 		}
 		$this->ProcessAllWorkLogs($task);
-		$this->ProcessOpenAirWorklogs($resources,$this->worklogs);
+		$selected_authors = array();
+		foreach($this->worklogs as $author=>$worklogs)
+		{
+			$selected_authors[$author] = $selected_authors;
+		}
+		$this->ProcessOpenAirWorklogs($selected_authors,$resources,$this->worklogs);
 		return $this->worklogs;
 		
 	}

@@ -53,8 +53,9 @@
 
 			"use strict";
 			$(".gantt").gantt({
-				source: <?php echo '"'.$cmd.'?data=1&scale=days"';?>,
+				source: <?php echo '"'.$cmd.'?board='.$board.'&data=1&scale=days"';?>,
 				navigate: "scroll",
+				board: "<?php echo $board;?>",
 				scale: "days",
 				maxScale: "months",
 				minScale: "days",

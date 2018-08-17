@@ -50,6 +50,8 @@ $data = GetWeeklyAccumlatedData($worklogs_data);
 $rowdata =  array();
 foreach($data as $date=>$obj)
 {
+	global $board;
+
 	$row = array();
 	$date = new DateTime($date);
 	$week = $date->format("W");

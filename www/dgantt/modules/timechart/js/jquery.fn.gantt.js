@@ -40,6 +40,7 @@
             navigate: "buttons",
             scale: "days",
             useCookie: false,
+	    board: "project",
             maxScale: "months",
             minScale: "hours",
             waitText: "Please wait...",
@@ -1317,7 +1318,7 @@
                         // reset scrollPos
                         $.cookie(this.cookieKey + "ScrollPos", null);
                     }
-		        $.getJSON("timechart?data=1&scale="+settings.scale, function (jsData) {
+		        $.getJSON("timechart?board="+settings.board+"&data=1&scale="+settings.scale, function (jsData) {
                         element.data = jsData;
                         core.init(element);
                     });

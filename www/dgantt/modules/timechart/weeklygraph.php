@@ -63,7 +63,10 @@
 		});
 	  function drawChart() {
       var jsonData = $.ajax({
-          url: "timechart?datatable=1",
+		  <?php
+		  $url = "timechart?datatable=1&board=".$board;
+		  ?>
+          url: "<?php echo $url; ?>",
           dataType: "json",
           async: false
           }).responseText;
