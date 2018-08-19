@@ -42,6 +42,7 @@ $dataTable = new DataTable([
     Column::create(ColumnType::STRING())->setLabel('Weeks'),
     Column::create(ColumnType::NUMBER())->setLabel('Jira'),
 	Column::create(ColumnType::NUMBER())->setLabel('OA'),
+	Column::create(ColumnType::NUMBER())->setLabel(''),
 ]);
 
 $data = GetWeeklyAccumlatedData($worklogs_data);
@@ -65,6 +66,7 @@ foreach($data as $date=>$obj)
 		$row[] =  $obj->field2*8;
 	else
 		$row[] = 0 ;
+	$row[] = $row[1];
 	$rowdata[] = $row;
 	
 	

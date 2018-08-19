@@ -25,7 +25,8 @@ function CreateZipFile($folder,$zipname)
 	{
 		die("Error : ".$new_zip->errorInfo(true));
 	}
-	echo "Successfully created zip file".EOL;
+	$msg = "Successfully created zip file";
+	LogMessage(ERROR,__CLASS__,$msg);
 }
 
 /**

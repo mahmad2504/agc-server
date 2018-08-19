@@ -51,6 +51,8 @@ foreach($data as $date=>$obj)
 //var_dump($selected_weekdates);
 foreach($worklogs_data as $user=>$type_data)
 {
+	if(isset($type_data['Open Air']))
+	{
 	foreach($type_data['Open Air'] as $worklogs)
 	{
 		foreach($worklogs as $worklog)
@@ -65,6 +67,7 @@ foreach($worklogs_data as $user=>$type_data)
 				$worklog->na = 1;
 			}
 		}
+	}
 	}
 }
 //var_dump($worklogs_data);

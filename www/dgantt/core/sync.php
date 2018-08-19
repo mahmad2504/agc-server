@@ -82,9 +82,46 @@ class Sync
 		}
 		if($found == 0)
 		{
-			echo "Info: OA Timesheet not found for user <span style='color:red;'>".$resource->Name."(id=".$resource->OpenAirName.")</span>".EOL;	
+			$msg = "OA Timesheet not found for user <span style='color:red;'>".$resource->Name."(id=".$resource->OpenAirName.")</span>";
+			LogMessage('INFO',__CLASS__,$msg);
 		}
 		return 1;
+	}
+	public function MarkQueries($task)
+	{
+		$query = $task->Query;
+		if($query != null)
+		{
+			$query->cached = 0;
+		}
+		
+		foreach($task->Children as $ctask)
+		{
+			$this->MarkQueries($ctask);
+		}
+	}
+	public function FindBoard($task,$tag)
+	{
+		if($tag == 'project')
+			return $task;
+		foreach($task->Tags as $t)
+		{
+			if(strtolower($t) == strtolower($tag))
+			{
+				return $task;
+			}
+		}
+		if( strpos( strtolower($task->Title), strtolower($tag) ) !== false ) 
+		{
+			return $task;
+		}
+		foreach($task->Children as $ctask)
+		{
+			$task = $this->FindBoard($ctask,$tag);
+			if($task != null)
+				return $task;
+		}
+		return null;
 	}
 	function __construct($rebuild=0,$debug=0)
 	{
@@ -92,6 +129,7 @@ class Sync
 		global $FILTER_FILE;
 		global $QUERY_FILE ;
 		global $SCHD_SERVER;
+		global $board;
 		try 
 		{
 			$gan = new Gan($GAN_FILE,$rebuild);
@@ -102,8 +140,23 @@ class Sync
 		}
 		
 		$gan->Dump($debug,1);
-
+		//echo $board.EOL;
+		
+		$board = urldecode($board);
+		$board = str_replace("'","",$board);
+		$board = str_replace('"',"",$board);
 	
+		$task = $this->FindBoard($gan->TaskTree[0],$board);
+		if($task == null)
+		{
+			$msg = "Board not found";
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
+		}
+		
+		$this->MarkQueries($task);
+		//$milestone = new Analytics($board);
+		//echo $milestone->ExtId;
+
 		/*if (file_exists($QUERY_FILE)) 
 		{
 			$qtxt = file_get_contents($QUERY_FILE);
@@ -331,7 +384,9 @@ class Sync
 			else
 			{
 				$url = '<a href="'.$gan->Jira->url.'/browse/'.$task->JiraId.'">'.$task->JiraId.'</a>';
-				echo "Info: Overriding resource ".$resource->Name." for ".$url." @".$task->Id.EOL;
+				$msg = "Overriding resource ".$resource->Name." for ".$url." @".$task->Id;
+				LogMessage('WARNING',__CLASS__,$msg);LogMessage('WARNING',__CLASS__,$msg);
+				//echo "Info: Overriding resource ".$resource->Name." for ".$url." @".$task->Id.EOL;
 				$task->ForcePlannedResource = 2;
 			}
 		}
@@ -458,7 +513,8 @@ class Sync
 				{
 					if( $row->level != ($jtask->Gtask->Level - $baselevel))
 					{
-						echo "Warning: ".$jtask->Gtask->Name."(".$key.")@ ".$jtask->Gtask->Id." misplaced in jira structure".EOL;
+						$msg = "Warning: ".$jtask->Gtask->Name."(".$key.")@ ".$jtask->Gtask->Id." misplaced in jira structure";
+						LogMessage('WARNING',__CLASS__,$msg);
 					}
 					break;
 				}
@@ -483,14 +539,14 @@ class Sync
 		$queries = $gan->Queries;	
 		//echo count($queries ).EOL;
 		//usort($queries,"cmp2");
-		if($board != 'project')
-		{
-			$tag = urldecode($board);
-			foreach($queries as $query)
-			{
-				$query->cached = !$this->MatchTag($query->Task,$tag);
-			}
-		}
+		//if($board != 'project')
+		//{
+		//	$tag = urldecode($board);
+		//	foreach($queries as $query)
+		//	{
+		//		$query->cached = !$this->MatchTag($query->Task,$tag);
+		//	}
+		//}
 		//return;
 		
 		$jtasksa = array();
@@ -506,7 +562,7 @@ class Sync
 					//var_dump($query->Jiratasks);
 					$stasks = $this->SortByJiraId($query->Jiratasks,$query->rows);
 					//var_dump($stasks);
-					$query->Jiratasks = $stasks;
+					//$query->Jiratasks = $stasks; TBV-MUMTAZ
 				}
 				$jtasksa[] = $query->Jiratasks;
 			//foreach($query->Jiratasks as $key=>$jtask)
@@ -558,7 +614,8 @@ class Sync
 							{
 								if(is_numeric($tagparts[1]))
 								{
-									echo "Warning: ".$task->Name." @".$task->Id." is misplaced and must be removed from plan".EOL;
+									$msg = "Warning: ".$task->Name." @".$task->Id." is misplaced and must be removed from plan";
+									LogMessage('WARNING',__CLASS__,$msg);
 							}
 						}
 						}
@@ -698,11 +755,13 @@ class Sync
 			{
 				//<a href="url">link text</a>
 				$url = '<a href="'.$gan->Jira->url.'/browse/'.$task->JiraId.'">'.$task->JiraId.'</a>';
-				echo "Warning: ".$url." ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
+				$msg = "Warning: ".$url." ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
+				LogMessage('WARNING',__CLASS__,$msg);
 			}
 			else
 			{
-				echo "Warning: ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
+				$msg = "Warning: ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
+				LogMessage('WARNING',__CLASS__,$msg);
 			}
 			$delim = "";
 											
@@ -731,18 +790,6 @@ class Sync
 				}	
 			}
 		}
-		return;
-		foreach($queries as $query)
-		{
-			$jtasks = $query->Jiratasks;
-			if($jtasks != null)
-			{
-				//echo "Filter ".EOL;
-				$this->FindTaskInChildren($query->Task,$jtasks,$query->Task);
-			}
-			
-			//echo($query->Task->JiraId);
-		}
 	}
 	function FindTaskInChildren($task, $jtasks,$filtertask)
 	{
@@ -752,7 +799,10 @@ class Sync
 			if($retval == 0)
 			{
 				if(strlen($child->JiraId)>0)
-				     echo "Delete ".$child->JiraId." from plan. It looks misplaced under this filter ".$filtertask->Name.EOL;
+				{
+				        $msg= "Delete ".$child->JiraId." from plan. It looks misplaced under this filter ".$filtertask->Name;
+					LogMessage('ERROR',__CLASS__,$msg);
+				}
 			}
 			//if(count($child->Children)>0)
 			//{

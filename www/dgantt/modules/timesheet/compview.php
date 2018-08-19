@@ -156,17 +156,17 @@ while(1)
 
 <div class="chart-horiz">
 <!-- Actual bar chart -->
-<ul class="chart">
-<li class="title" title="Weekly Time History"></li>
+<!-- <ul class="chart"> -->
+<!-- <li class="title" title="Weekly Time History"></li> -->
 	<?php 
-	for($i=count($weeklydata)-2;$i>=0;$i--) // dont show current week which is at last index
-	{
-		$week = $i+1;
-		$hours = $weeklydata[$i]*8;
-		$weeklydata[$i] = $weeklydata[$i]+2;
-		echo '<li class="current" title="Week '.$week.'"><span class="bar" data-number="'.$weeklydata[$i].'"></span><span class="number">'.$hours.'H</span></li>';
-
-	}
+	//for($i=count($weeklydata)-2;$i>=0;$i--) // dont show current week which is at last index
+	//{
+	//	$week = $i+1;
+	//	$hours = $weeklydata[$i]*8;
+	//	$weeklydata[$i] = $weeklydata[$i]+2;
+	//	echo '<li class="current" title="Week '.$week.'"><span class="bar" data-number="'.$weeklydata[$i].'"></span><span class="number">'.$hours.'H</span></li>';
+//
+	//}
 	
 	//<li class="current" title="Week 2"><span class="bar" data-number="100"></span><span class="number">100</span></li>
 	//<li class="past" title="Week 1"><span class="bar" data-number="10"></span><span class="number">10</span></li>
@@ -186,24 +186,25 @@ while(1)
 
 		
     }
+	/*
     $(document).ready(function()
 	{
         $('.chart').horizBarChart({
           selector: '.bar',
           speed: 1000
         });
-     });
+     });*/
 </script>
 
 <?php
-$link .= '&layout=3&date='.$date;
-echo '<a  style="color:#999;" href="'.$link.'" title="" target="_blank">Task View</a>';
+//$link .= '&layout=3&date='.$date;
+//echo '<a  style="color:#999;" href="'.$link.'" title="" target="_blank">Task View</a>';
 
-$link .= '&layout=1&date='.$date;
-echo '&nbsp&nbsp<a  style="color:#999;" href="'.$link.'" title="" target="_blank">User View</a>';
+//$link .= '&layout=1&date='.$date;
+//echo '&nbsp&nbsp<a  style="color:#999;" href="'.$link.'" title="" target="_blank">User View</a>';
 ?>
 <!-- Designed by DreamTemplate. Please leave link unmodified. -->
-<br><a  style="color:#999;" href="report?board=<?php echo $board;?>&date=<?php echo $date;?>" title="" target="_blank">Report</a>
+<!-- <br><a  style="color:#999;" href="report?board=<?php echo $board;?>&date=<?php echo $date;?>" title="" target="_blank">Report</a> -->
 
 </body>
 </html>

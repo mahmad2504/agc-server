@@ -71,20 +71,24 @@
           async: false
           }).responseText;
       var obj = JSON.parse(jsonData);
+	  var length = obj.rows.length>10?obj.rows.length:10;
+	  var groupwidth = obj.rows.length*10 > 50?50:obj.rows.length*10;
+	  groupwidth = groupwidth.toString();
+	  console.log(groupwidth);
       // Create our data table out of JSON data loaded from server.
       var data = new google.visualization.DataTable(jsonData);
 	  var options = {
       title : 'Time Logs History',
       vAxis: {title: 'Hours'},
       hAxis: {title: 'Weeks'},
-	  //bar: {groupWidth: "%"},
-	  width: obj.rows.length*50>(window.screen.width-200)?(window.screen.width-200):obj.rows.length*50,
+	  bar: {groupWidth: groupwidth+"%"},
+	  width: length*50>(window.screen.width-200)?(window.screen.width-200):length*50,
 	  height: 240,
       seriesType: 'bars',
-      //series: {
-	//			2: {type: 'line'},
+      series: {
+				2: {type: 'line', color: 'blue'},
 	//			3: {type: 'line'}
-	//		},
+			},
 	  };
       // Instantiate and draw our chart, passing in some options.
 	  

@@ -105,8 +105,13 @@ class Jirarest
 
 		
 		$result = curl_exec($curl);
-		$ch_error = curl_error($curl); if ($ch_error) { trace('error',"$ch_error");} else { 
-//DebugLog($result);
+		$ch_error = curl_error($curl); if ($ch_error) 
+		{ 
+			LogMessage(ERROR,__CLASS__,$ch_error);
+		} 
+		else 
+		{ 
+			//DebugLog($result);
                 }
 		$result = json_decode($result,true);
 		if( is_array ( $result))
@@ -138,14 +143,21 @@ class Jirarest
 		curl_setopt($curl,  CURLOPT_POSTFIELDS ,$data);
 		curl_setopt($curl, CURLOPT_URL, $url);
 		$result = curl_exec($curl);
-		$ch_error = curl_error($curl); if ($ch_error) { trace('error',"$ch_error");} else { 
-//DebugLog($result);
-}
+		$ch_error = curl_error($curl); if ($ch_error) 
+		{ 
+			//trace('error',"$ch_error");
+			LogMessage(ERROR,__CLASS__,$ch_error);
+		} 
+		else 
+		{ 
+			//DebugLog($result);
+		}
 
 		$returnvalue = json_decode($result,true);
 		if(isset($returnvalue["errorMessages"]))
 		{
-			trace(ERROR,$returnvalue["errorMessages"][0]);
+			//trace(ERROR,$returnvalue["errorMessages"][0]);
+			LogMessage(ERROR,__CLASS__,$returnvalue["errorMessages"][0]);
 		}
 		
 	}
@@ -163,9 +175,16 @@ class Jirarest
 		//echo $url;
 		$result = curl_exec($curl);
 		
-		$ch_error = curl_error($curl); if ($ch_error) { trace('error',"$ch_error");} else { 
-//DebugLog($result);
-}
+		$ch_error = curl_error($curl); 
+                if ($ch_error) 
+		{ 
+			//trace('error',"$ch_error");
+			LogMessage(ERROR,__CLASS_,$ch_error);
+		} 
+		else 
+		{ 
+			//DebugLog($result);
+		}
 
 		//var_dump($result);
 		$xml=null;
@@ -188,8 +207,8 @@ class Jirarest
 		$ch_error = curl_error($curl); 
 		if ($ch_error) 
 		{ 
-			echo $ch_error.EOL;
-			exit();
+			$msg = $ch_error;
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 			//echo "Mode:Offline ...".EOL;
 			self::$offline=1;
 			return null;
@@ -200,9 +219,8 @@ class Jirarest
 		}
 		if (strpos($result, 'Unauthorized') !== false) 
 		{
-			echo "Jira error :: ";
-			echo $result;
-			exit();
+			$msg = "Jira error :: ".$result;
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
     //echo 'true';
 	//echo($result);
@@ -210,9 +228,8 @@ class Jirarest
 		$returnvalue = json_decode($result,true);
 		if(isset($returnvalue["errorMessages"]))
 		{
-			echo "Jira error :: ";
-			trace(ERROR,$returnvalue["errorMessages"][0]);
-			exit();
+			$msg = "Jira error :: ".$returnvalue["errorMessages"][0];
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
 		self::$offline=0;
 		return $returnvalue;
@@ -239,15 +256,23 @@ class Jirarest
 		CURLOPT_POSTFIELDS => $jdata,
 		CURLOPT_HTTPHEADER => array('Content-type: application/json')));
 		$result = curl_exec($curl);
-		$ch_error = curl_error($curl); if ($ch_error) { trace('error',$ch_error); exit(-1);} else { 
-//DebugLog($result);
+		$ch_error = curl_error($curl); 
+		if ($ch_error) 
+		{ 
+			LogMessage(CRITICALERROR,__CLASS__,$ch_error);
+			//trace('error',$ch_error); 
+			//exit(-1);
+		} 
+		else 
+		{ 
+			//DebugLog($result);
       }
 		$json = json_decode($result);
 		//var_dump($result);
 		if(isset($json->forestUpdates[1]->error))
 		{
-			trace("error","Jira structure does not exist");
-			exit(-1);
+			$msg = "Jira structure does not exist";
+			LogMessage(CRITICALERROR,__CLASS__,$ch_error);
 		}
 		
 		$formula_array = explode(",",$json->forestUpdates[1]->formula);
@@ -280,7 +305,14 @@ class Jirarest
 		CURLOPT_POSTFIELDS => $jdata,
 		CURLOPT_HTTPHEADER => array('Content-type: application/json')));
 		$result = curl_exec($curl);
-		$ch_error = curl_error($curl); if ($ch_error) { trace('error'."$ch_error");} else { //ebugLog($result);
+		$ch_error = curl_error($curl); 
+		if ($ch_error) 
+		{ 
+			LogMessage(ERROR,__CLASS__,$ch_error);
+		} 
+		else 
+		{ 
+			//ebugLog($result);
                 }
 		return json_decode($result);
 	}
@@ -297,9 +329,15 @@ class Jirarest
 		CURLOPT_RETURNTRANSFER => true));
 		
 		$result = curl_exec($curl);
-		$ch_error = curl_error($curl); if ($ch_error) { trace('error'."$ch_error");} else { 
-//DebugLog($result);
-}
+		$ch_error = curl_error($curl); 
+		if ($ch_error) 
+		{ 
+			LogMessage(ERROR,__CLASS__,$ch_error);
+		} 
+		else 
+		{ 
+			//DebugLog($result);
+		}
 		return json_decode($result);
 	}
 	
@@ -686,7 +724,8 @@ class Jirarest
 					return null;
 				break;
 			default:
-				trace(ERROR,"Unhandled field ".$field);
+				$msg = "Unhandled field ".$field;
+				LogMessage(ERROR,__CLASS__,$msg);
 				return "";
 			
 		}
@@ -733,7 +772,7 @@ class Jirarest
 			{
 				if( strcmp($tasks[0][attachment][$i]['filename'],$filename)==0)
 				{
-					echo "Deleting old attachement ".$tasks[0][attachment][$i]['filename']."\n";
+					//echo "Deleting old attachement ".$tasks[0][attachment][$i]['filename']."\n";
 					self::RestApi("DELETE","attachment/".$tasks[0][attachment][$i]['id']);
 				}
 			}
@@ -755,7 +794,14 @@ class Jirarest
 		curl_setopt($curl, CURLOPT_URL,$url);
 		//echo $url;
 		$result = curl_exec($curl);
-		$ch_error = curl_error($curl); if ($ch_error) { echo "CURL Error: $ch_error";} else { 
+		$ch_error = curl_error($curl); 
+                if ($ch_error) 
+		{ 
+			$msg = "CURL Error: ".$ch_error;
+			LogMessage(ERROR,__CLASS__,$msg);
+		} 
+		else 
+		{ 
 		//DebugLog($result);
 		}
 		return $result;
@@ -895,9 +941,9 @@ class Jirarest
 				//$log['created'] = $shistory['created'];
 				//if($log['field'] == 'timeoriginalestimate')
 				{
-					echo $key2."   ";
-					print_r($log);
-					echo "<br>";
+					//echo $key2."   ";
+					//print_r($log);
+					//echo "<br>";
 				}
 			}
 
@@ -947,7 +993,8 @@ class Jirarest
 			$ts = self::ConvertJiraTime($log['timeSpent']);
 			if($ts == 0)
 			{
-				echo "Some work log of task ".$key." is wrong\n";
+				$msg =  "Some work log of task ".$key." is wrong";
+				LogMessage(WARNING,__CLASS__,$msg);
 			}
 			$worklog->id = $log['id'];
 			$start_date= explode("T", $log['started'], 2);

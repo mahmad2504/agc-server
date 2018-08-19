@@ -46,6 +46,9 @@ class Analytics
 	{
 		switch($name)
 		{
+			case 'Task':
+				return $this->data;
+				break;
 			case 'Weekend':
 				if($this->weekend != null)
 					return $this->weekend;
@@ -125,7 +128,9 @@ class Analytics
 			case 'Id':
 				return $this->data->Id;
 			default:
-				echo "Analytics does not have get property ".$name;
+				$msg = "Analytics does not have get property ".$name;
+				LogMessage(ERROR,__CLASS__,$msg);
+				break;
 		}
 	}
 	public function GetSyncLink($project_name,$board)
@@ -246,8 +251,11 @@ class Analytics
 		//echo "da".$days_available.EOL;
 		//echo "wd".$working_days.EOL;
 		if(($days_available+$days_consumed) != $working_days)
-			echo "Warning:days_available+days_consumed != $working_days";
+		{
+			$msg = "Warning:days_available+days_consumed != $working_days";
+			LogMessage(ERROR,__CLASS__,$msg);
 		
+		}
 		// Find current and required velocity/////////////////////////////////////////////////////////////
 		$this->current_velocity = 0;
 		$this->required_velocity = round($total_value/$working_days,1);
@@ -707,8 +715,8 @@ class Analytics
 			$task = $tasks[$task->ExtId];
 		else
 		{
-			echo $task->ExtId."Not found";
-			exit();
+			$msg = $task->ExtId."Not found";
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
 		$this->ProcessAllWorkLogs($task);
 		$selected_authors = null;
@@ -835,8 +843,8 @@ class Analytics
 			$task = $tasks[$task->ExtId];
 		else
 		{
-			echo $task->ExtId."Not found";
-			exit();
+			$msg = $task->ExtId."Not found";
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
 		
 		

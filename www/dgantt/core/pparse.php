@@ -65,8 +65,6 @@ else
 		define("EOL","<br>");
 	
 }
-
-
 function flushout()
 {
 	global $env;

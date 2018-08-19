@@ -26,7 +26,8 @@ class Query
 	private $rebuild;
 	private $jiracred;
 	private $isstructure=0;
-	
+	private $cached = 1;
+
 	function multiexplode ($delimiters,$string) {
 
 		$ready = str_replace($delimiters, $delimiters[0], $string);
@@ -51,7 +52,8 @@ class Query
 			$parent = $this->task->Parenttask;
 			if($parent == null)
 			{
-				echo "Parent Not found for quesry in ".$this->task->Name.EOL;
+				$msg = "Parent Not found for query in ".$this->task->Name;
+				LogMessage(ERROR,__CLASS__,$msg);
 				return '';
 			}
 			$jirainfo = $project->GetJiraCredentials($parent->Tags[0]);
@@ -95,7 +97,8 @@ class Query
 			$parent = $this->task->Parenttask;
 			if($parent == null)
 			{
-				echo "Parent Not found for quesry in ".$this->task->Name.EOL;
+				$msg = "Parent Not found for query in ".$this->task->Name;
+				LogMessage(ERROR,__CLASS__,$msg);
 				return '';
 			}
 			$jirainfo = $project->GetJiraCredentials($parent->Tags[0]);
@@ -356,8 +359,9 @@ class Query
 				$result = Jirarest::GETStructureInfo($njql[1]);
 				if($result == null)
 				{
-					echo "Structure ".$njql[1]." Not found on default Jira server".EOL;
-					foreach($project->ExtraJiraCredentials as $jirainfo)
+					$msg =  "Structure ".$njql[1]." Not found on default Jira server";
+					LogMessage(CRITICALERROR,__CLASS__,$msg);
+					/*foreach($project->ExtraJiraCredentials as $jirainfo)
 					{
 						Jirarest::SetUrl($jirainfo->url,$jirainfo->user,$jirainfo->pass);
 						$result = Jirarest::GETStructureInfo($njql[1]);
@@ -367,15 +371,16 @@ class Query
 							break;
 						}
 						echo "Structure ".$njql[1]." Not found on ".$jirainfo->url.EOL;
-					}
+					}*/
 					if($result == null)
 						exit(-1);
 					
 				}
 				if(isset($result->error))
 				{
-					echo $result->error.EOL;
-					exit(-1);
+					$msg =  $result->error;
+					LogMessage(CRITICALERROR,__CLASS__,$msg);
+
 				}
 				$rows = Jirarest::GetStructure($njql[1]);
 				$query="id in (";
@@ -445,8 +450,9 @@ class Query
 		
 		if(strlen(trim($jql)) < 5) // bad check
 		{
-			echo "Invalid JQL ".$jql.EOL;
-			exit();
+			$msg = "Invalid JQL ".$jql;
+			LogMessage(ERROR,__CLASS__,$msg);
+
 			//$this->Run();
 			/*$this->filter = new Filter($filterfile,$njql,$rebuild);
 			foreach($this->filter->GetData() as $key=>$jtask)
@@ -469,10 +475,13 @@ class Query
 		//	$rebuild = 1;
 		//echo $this->njql.EOL;
 		//echo "this->cached=".$this->cached.EOL;
-		if( isset($this->cached))
-			$this->filter = new Filter($this->filterfile,$this->njql,$rebuild,$this->cached);
-		else
-			$this->filter = new Filter($this->filterfile,$this->njql,$rebuild,-1);
+		//if(isset($this->cached))
+		$this->filter = new Filter();
+		$this->filter->task = $this->Task;
+		$this->filter->Load($this->filterfile,$this->njql,$rebuild,$this->cached);
+		
+		//else
+		//	$this->filter = new Filter($this->filterfile,$this->njql,$rebuild,-1);
 		
 		$data = $this->filter->GetData();
 		if($data != null)
@@ -484,10 +493,26 @@ class Query
 		}
 		$this->rebuild = 0;
 	}
+	public function __set($name,$value)
+	{
+		switch($name)
+		{
+			case 'cached':
+				$this->cached = $value;
+				break;
+			default:
+				$msg = "Query cannot set ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
+				break;
+		}	
+	}
 	public function __get($name)
 	{
 		switch($name)
 		{
+			case 'cached':
+				return $this->cached;
+				break;
 			case 'IsStructure':
 				return $this->isstructure;
 			case 'Task':
@@ -500,7 +525,8 @@ class Query
 				
 				return $this->filter->GetData();
 			default:
-				echo "Query cannot get ".$name." property";
+				$msg = "Query cannot get ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -527,9 +553,8 @@ class JiraInfo
 		$url = filter_var($this->url, FILTER_VALIDATE_URL);
 		if (strlen($url) == 0) 
 		{
-			echo 'Jira url ['.$this->url.'] is not a valid URL'.EOL;
-			echo "Update project properties".EOL;
-			exit();
+			$msg = 'Jira url ['.$this->url.'] is not a valid URL';
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
 		//$info = explode(":",$info[1]);
 		//if(count($info) < 2)
@@ -596,9 +621,8 @@ class GanProject
 		if(!file_exists($configuration_folder.$conffile))
 		//if(!file_exists(getcwd()."//".$conffile))
 		{
-				echo "Configuration for $conffile not found".EOL;
-				echo "Exiting".EOL;
-				exit();
+			$msg =  "Configuration for $conffile not found";
+			LogMessage(CRITICALERROR,__CLASS_,$msg);
 		}
 		//$xmldata = file_get_contents(getcwd()."//".$conffile);
 		$xmldata = file_get_contents($configuration_folder.$conffile);
@@ -707,16 +731,16 @@ class GanProject
 						//var_dump($obj);
 						break;
 					default:
-						echo "Unknown filed='".$fields[0]."' configured in project ".EOL;
+						$msg = "Unknown filed='".$fields[0]."' configured in project ";
+						LogMessage(ERROR,__CLASS__,$msg);
 						break;
 				}
 			}
 		}
 		if(($this->start == null)||($this->end == null))
 		{
-			echo "Project Start or End missing.".EOL;
-			echo "Update Project properties".EOL;
-			exit();
+			$msg = "Project Start or End missing.";
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
 	}
 	public function GetJiraCredentials($jirakey)
@@ -761,7 +785,8 @@ class GanProject
 				return $this->name;
 				break;
 			default:
-				echo "GanProject cannot get ".$name." property";
+				$msg = "GanProject cannot get ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -774,7 +799,8 @@ class GanProject
 				$this->root->setAttribute('name',$value);
 				break;
 			default:
-				echo "GanProject cannot set ".$name." property";
+				$msg = "GanProject cannot set ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -805,7 +831,8 @@ class GanCalendar
 				return $this->holidays;
 				break;
 			default:
-				echo "GanCalendar cannot get ".$name." property";
+				$msg = "GanCalendar cannot get ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -871,7 +898,8 @@ class GanResource
 						$resource = $this->parent->FindResource($name);
 						if($resource==null)
 						{
-							echo "Warning :Group resource name ".$name." not found".EOL;
+							$msg = "Warning :Group resource name ".$name." not found";
+							LogMessage(ERROR,__CLASS__,$msg);
 						}
 						else
 							$this->group[] = $resource;
@@ -930,7 +958,8 @@ class GanResource
 				$this->domelement->setAttribute('id',$this->id);
 				break;
 			default:
-				echo "GanResource cannot set ".$name." property";
+				$msg =  "GanResource cannot set ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -967,7 +996,8 @@ class GanResource
 			case 'CalendarCode':
 				return $this->calendercode;
 			default:
-				echo "GanResource cannot get ".$name." property";
+				$msg =  "GanResource cannot get ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -1094,7 +1124,8 @@ class GanResources
 		} 
 		else
 		{
-			echo "Warning: Failed to load calender ".$calender_code." for user ".$resource->Name.EOL;
+			$msg =  "Failed to load calender ".$calender_code." for user ".$resource->Name;
+			LogMessage(ERROR,__CLASS__,$msg);
 		}
 		return $data;
 	}
@@ -1191,7 +1222,8 @@ class GanResources
 			//echo $res->Name." ".$resource->Name."-".EOL;
 			if($res->Name == $resource->Name)
 			{
-				echo "Resource ".$resource->Name." already exist".EOL;
+				$msg =  "Resource ".$resource->Name." already exist";
+				LogMessage(ERROR,__CLASS__,$msg);
 				return -1;
 			}
 			if($nextid<=$res->Id)
@@ -1212,7 +1244,8 @@ class GanResources
 				return $this->list;
 				break;
 			default:
-				echo "GanResources cannot get ".$name." property";
+				$msg =  "GanResources cannot get ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -1243,7 +1276,8 @@ class GanAllocation
 			case 'forced':
 				return $this->responsible;
 			default:
-				echo "GanAllocation cannot access ".$name." property";
+				$msg = "GanAllocation cannot access ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -1272,7 +1306,8 @@ class GanAllocations
 			case 'List':
 				return $this->list;
 			default:
-				echo "GanAllocations cannot access ".$name." property";
+				$msg = "GanAllocations cannot access ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -1298,7 +1333,8 @@ class CustomProperty
 			case 'Name':
 				return $this->name;
 			default:
-				echo "CustomProperty cannot access ".$name." property";
+				$msg =  "CustomProperty cannot access ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -1326,7 +1362,8 @@ class CustomProperties
 			case 'List':
 				return $this->list;
 			default:
-				echo "CustomProperties cannot access ".$name." property";
+				$msg = "CustomProperties cannot access ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 			
 		}
@@ -1409,7 +1446,9 @@ class GanTask
 		//echo $queryid.$found.EOL;
 		if($found != 3)
 		{
-			echo "Tag/Query/Deadline Column not found".EOL;
+		
+			$msg =  "Tag/Query/Deadline Column not found";
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 			echo "Create one in project and retry".EOL;
 			exit(1);
 		}
@@ -1490,7 +1529,8 @@ class GanTask
 							}
 							else
 							{
-								echo "Warning : ".$this->Name." @".$this->Id." had invalid deadline. Ignoring".EOL;
+								$msg = $this->Name." @".$this->Id." had invalid deadline. Ignoring";
+								LogMessage(ERROR,__CLASS__,$msg);
 						        }
 						}
 						break;
@@ -1499,7 +1539,8 @@ class GanTask
 						$this->tstart = explode("T",$cpvalue)[0];
 						break;
 					default:
-						echo "Unknown custom property ".$cproperties->List[$cpid]->Name." ".EOL;
+						$msg = "Unknown custom property ".$cproperties->List[$cpid]->Name." ";
+						LogMessage(ERROR,__CLASS__,$msg);
 						break;
 				}
 				//echo $cpid." ".$cpvalue.EOL;
@@ -1534,7 +1575,10 @@ class GanTask
 				if(($dl >= strtotime($this->project->Start))&&($dl <= strtotime($this->project->End)))
 				{
 					if($override==1)
-						echo "Overriding deadline for ".$this->JiraId." in project plan from Jira".EOL;	
+					{
+						$msg = "Overriding deadline for ".$this->JiraId." in project plan from Jira";	
+						LogMessage(ERROR,__CLASS__,$msg);
+					}
 					
 					
 					// valid milestone date
@@ -1552,7 +1596,8 @@ class GanTask
 				else
 				{
 					$url = '<a href="'.$this->project->Jira->url.'/browse/'.$this->JiraId.'">'.$this->JiraId.'</a>';
-					echo "Warning : ".$url." ".$this->Name." @".$this->Id." has invalid duedate (".$value.") in Jira.Ignoring".EOL;
+					$msg = $url." ".$this->Name." @".$this->Id." has invalid duedate (".$value.") in Jira.Ignoring";
+					LogMessage(ERROR,__CLASS__,$msg);
 				}
 				return;
 			case 'ForcePlannedResource':
@@ -1676,7 +1721,8 @@ class GanTask
 				$this->end = $value;
 				break;
 			default:
-				echo "GanTask cannot set ".$name." property";
+				$msg =  "GanTask cannot set ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 			
 		}
@@ -1846,7 +1892,8 @@ class GanTask
 					return $a;
 				}
 			default:
-				echo "GanTask cannot access ".$name." property";
+				$msg = "GanTask cannot access ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 			
 		}
@@ -1997,8 +2044,9 @@ class GanTasks
 		}
 		//$this->ResolveDependecy();
 		//$this->UpdateTasks();
-		echo "Project Plan must contain atleast one task".EOL;
-		exit();
+		
+		$msg =  "Project Plan must contain atleast one task";
+		LogMessage(CRITICALERROR,__CLASS__,$msg);
 		throw new Exception( 'Failed!' );
 	}
 	public function __get($name)
@@ -2012,7 +2060,8 @@ class GanTasks
 			case 'ListByExtId':
 				return $this->listbyexitid;
 			default:
-				echo "GanTasks cannot access ".$name." property";
+				$msg = "GanTasks cannot access ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 			
 		}
@@ -2103,9 +2152,9 @@ class GanTasks
 			$task->Status = "RESOLVED";
 		else
 		{
-			echo "unknown task status ";
+			$msg = "unknown task status ";
+			LogMessage(ERROR,__CLASS__,$msg);
 			$task->Status = "OPEN";
-			print_r($status_srray);
 		}
 		//echo $task->Status.EOL;
 		return $task->Status;
@@ -2192,7 +2241,8 @@ class Gan
 	{
 		if(($filename == null)||(!file_exists ($filename)))
 		{
-			echo $filename." does not exist".EOL;
+			$msg =  $filename." does not exist";
+			LogMessage(ERROR,__CLASS__,$msg);
 			return;
 		}
 		$this->filename = $filename;
@@ -2239,7 +2289,8 @@ class Gan
 					}
 					else
 					{
-						echo "From Jira Adding dependency for ".$task->JiraId."[".$task->Id."] ---- ".$t->JiraId."[".$t->Id."]".EOL;
+						$msg = "From Jira Adding dependency for ".$task->JiraId."[".$task->Id."] ---- ".$t->JiraId."[".$t->Id."]";
+						LogMessage(INFO,__CLASS__,$msg);
 						$task->Predecessor = $t;
 						$found=1;
 						break;
@@ -2248,14 +2299,16 @@ class Gan
 			}
 			if($found==0)
 			{
-				echo "Warning: Jira dependency ".$t->JiraId." for ".$task->JiraId."[".$task->Id."] is not in plan".EOL;
+				$msg =  "Warning: Jira dependency ".$t->JiraId." for ".$task->JiraId."[".$task->Id."] is not in plan";
+				LogMessage(ERROR,__CLASS__,$msg);
 			}
 			//var_dump($t);
 		}
 		//Validate
 		if(count($key_array) !=  count($task->Predecessors))
 		{
-			echo "Warning :Dependencies for ".$task->JiraId." mismatch in Jira and Plan".EOL;
+			$msg = "Warning :Dependencies for ".$task->JiraId." mismatch in Jira and Plan";
+			LogMessage(ERROR,__CLASS__,$msg);
 		}
 	}
 	function AddTask($name,$tag,$ptask=null)
@@ -2388,7 +2441,8 @@ class Gan
 				return $this->cproperties->List;
 			
 			default:
-				echo "Gan cannot access ".$name." property";
+				$msg = "Gan cannot access ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}
@@ -2400,7 +2454,8 @@ class Gan
 			//	$this->project->Jiraurl = $value;
 			//	break;
 			default:
-				echo "Gan cannot set ".$name." property";
+				$msg = "Gan cannot set ".$name." property";
+				LogMessage(ERROR,__CLASS__,$msg);
 				break;
 		}
 	}

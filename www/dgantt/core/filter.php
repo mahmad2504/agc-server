@@ -19,7 +19,7 @@ class Filter {
 	private $tasks;
 	private $query;
 	private $cached=0;
-	
+	public $task = null;
 	private $twauthors;
 	private $twtasks;
 	private $grand_total;
@@ -57,8 +57,8 @@ class Filter {
 			case 'IsCached':
 				return $this->cached;
 			default:
-				echo "Filter does not support ".$name." property".EOL;
-				exit;
+				$msg =  "Filter does not support ".$name." property";
+				LogMessage('CRITICALERROR',__CLASS__,$msg);
 		}
 	}
 	function GetField($field,$key)
@@ -97,25 +97,31 @@ class Filter {
 				return $task->timespent;
 				break;
 			default:
-				echo 'cant get '.$field.EOL;
-				exit();
+				$msg = 'cant get '.$field.EOL;
+				LogMessage('CRITICALERROR',__CLASS__,$msg);
 		}
+		}
+	function __construct()
+	{
+		
 	}
-	function __construct($name,$query,$rebuild=0,$cached=-1)
+	function Load($name,$query,$rebuild=0,$cached=-1)
 	{
 		global $force;
-		if($cached == 0)
-			$rebuild=1;
+		//if($cached == 0)
+		//	$rebuild=1;
 		//Jirarest::SetUrl($jiraurl);
+		
 		//echo "---".$query."----".$cached." ".EOL;
 		if(strlen($query) == 0)
 			return;
 		$fields = 'id,key,status,summary,start,end,timeoriginalestimate,timespent,labels,assignee,created,issuetype,issuelinks,emailAddress,aggregatetimespent,subtasks,story_points,duedate';
 		$this->query = $query;
-		if (file_exists($name) && $rebuild==0) 
+		$this->cached=0;
+		if($rebuild==0) // normal sync
 		{
 			//echo "Updating\n";
-			$this->cached=0;
+			
 			$last_update_date = date ("Y/m/d H:i" , filemtime($name));
 			//echo $last_update_date.EOL;
 			$expiry = strtotime('+15 minutes',strtotime($last_update_date));
@@ -130,6 +136,7 @@ class Filter {
 			//if(strtotime($last_update_date) 
 			$data = file_get_contents($name);
 			$this->tasks = json_decode( $data );
+					
 			if($cached==1)
 			{
 				$this->cached=1;
@@ -164,25 +171,25 @@ class Filter {
 				$tasks[$i]['worklogs'] =  $worklogs;
 				$this->tasks->$tasks[$i]['key'] = $tasks[$i];
 			}
+			$msg = $this->task->Name." [Updated]";
+			LogMessage('INFO',__CLASS__,$msg);
 		}
 		else
 		{
-			/*if($cached != 0)
-			{
+			//echo "Rebuilding  ".$query.EOL;
 			if(file_exists($name))
 			{
-				$last_update_date = date ("Y/m/d H:i" , filemtime($name));
-				$expiry = strtotime('+15 minutes',strtotime($last_update_date));
-				if(strtotime(date ("Y/m/d H:i")) < $expiry)
-				{
-					$data = file_get_contents($name);
-					$this->tasks = json_decode( $data );
-					$this->cached=1;
-					return;
-				}
+				$data = file_get_contents($name);
+				$tasks = json_decode( $data );
+				$this->tasks = $tasks;
 			}
-			}*/
-			//echo "Rebuilding  ".$query.EOL;
+			if($cached==1)
+			{
+				$this->cached=1;
+				//$msg = "Query for ".$this->task->Name." Cached...";
+				//LogMessage('INFO',__CLASS__,$msg);
+				return;
+			}
 			$tasks = Jirarest::Search($query,1000,$fields);
 			if($tasks == null)
 			{
@@ -196,13 +203,14 @@ class Filter {
 				}
 				return;
 			}
-			
 			for($i=0;$i<count($tasks);$i++)
 			{
 				$worklogs = Jirarest::GetWorkLog($tasks[$i]['key']);
-				$tasks[$i]['worklogs'] =  $worklogs;
-				$this->tasks[$tasks[$i]['key']] = $tasks[$i];
+				$tasks[$i]['worklogs'] =  $worklogs;	
+				$this->tasks->$tasks[$i]['key'] = $tasks[$i];
 			}
+			$msg = $this->task->Name." [Rebuild]";
+			LogMessage('INFO',__CLASS__,$msg);
 		}
 		global $PLAN_FOLDER;
 		if(!file_exists($PLAN_FOLDER))

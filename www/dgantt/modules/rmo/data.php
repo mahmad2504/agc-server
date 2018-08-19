@@ -20,28 +20,28 @@
 			case JSON_ERROR_NONE:
 				break;
 			case JSON_ERROR_DEPTH:
-				echo ' - Maximum stack depth exceeded';
-				exit();
+				$msg = ' - Maximum stack depth exceeded';
+				LogMessage(CRITICALERROR,__CLASS__,$msg);
 				break;
 			case JSON_ERROR_STATE_MISMATCH:
-				echo ' - Underflow or the modes mismatch';
-				exit();
+				$msg =  ' - Underflow or the modes mismatch';
+				LogMessage(CRITICALERROR,__CLASS__,$msg);
 				break;
 			case JSON_ERROR_CTRL_CHAR:
-				echo ' - Unexpected control character found';
-				exit();
+				$msg =  ' - Unexpected control character found';
+				LogMessage(CRITICALERROR,__CLASS__,$msg);
 				break;
 			case JSON_ERROR_SYNTAX:
-				echo ' - Syntax error, malformed JSON';
-				exit();
+				$msg =  ' - Syntax error, malformed JSON';
+				LogMessage(CRITICALERROR,__CLASS__,$msg);
 				break;
 			case JSON_ERROR_UTF8:
-				echo ' - Malformed UTF-8 characters, possibly incorrectly encoded';
-				exit();
+				$msg =  ' - Malformed UTF-8 characters, possibly incorrectly encoded';
+				LogMessage(CRITICALERROR,__CLASS__,$msg);
 				break;
 			default:
-				echo ' - Unknown error';
-				exit();
+				$msg =  ' - Unknown error';
+				LogMessage(CRITICALERROR,__CLASS__,$msg);
 			break;
 		}
 		foreach($data as $d)
@@ -64,23 +64,23 @@
 			{
 				if(!isset($project->start))
 				{
-					echo "Project Start Date of ".$project->name." is not set";
-					exit();
+					$msg = "Project Start Date of ".$project->name." is not set";
+					LogMessage(CRITICALERROR,__CLASS__,$msg);
 				}
 				if(!isset($project->end))
 				{
-					echo "Project End Date of ".$project->name." is not set";
-					exit();
+					$msg = "Project End Date of ".$project->name." is not set";
+					LogMessage(CRITICALERROR,__CLASS__,$msg);
 				}
 				if(strtotime($project->start)>strtotime($project->end))
 				{
-					echo "Project Start and End Date of ".$project->name." are not valid";
-					exit();
+					$msg = "Project Start and End Date of ".$project->name." are not valid";
+					LogMessage(CRITICALERROR,__CLASS__,$msg);
 				}
 				if(strtotime($project->start)<strtotime('today')&&strtotime($project->end)<strtotime('today'))
 				{
-					echo "Inoring  ".$project->name;
-					continue;
+					$msg = "Project Start and End Date of ".$project->name." are not valid";
+					LogMessage(CRITICALERROR,__CLASS__,$msg);
 				}
 			}
 			

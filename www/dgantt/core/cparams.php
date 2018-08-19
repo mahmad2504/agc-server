@@ -21,8 +21,8 @@ $count = $depth+5;
 
 if(count($path) > ($depth+5))
 {
-	echo "URL Errors";
-	exit();
+	$msg = "URL Errors";
+	LogMessage(CRITICALERROR,__CLASS__,$msg);
 }
 $argc = count($path) - 1 -$depth;
 //echo count($path)."   ".$argc.EOL;
@@ -48,8 +48,8 @@ switch($argc)
 		$cmd = $path[$depth+4];
 		break;
 	default:
-		echo "URL Errors";
-		exit();
+		$msg = "URL Errors";
+		LogMessage(CRITICALERROR,__CLASS__,$msg);
 	
 }
 if($project_name == 'none')
@@ -99,8 +99,6 @@ else
 
 if(!isset($rebuild))
 	$rebuild = 0;
-else
-	$rebuild = 1;
 
 if(!isset($debug))
 	$debug = 0;

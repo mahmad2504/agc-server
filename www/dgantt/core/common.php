@@ -56,12 +56,12 @@ require_once('globals.php');
 //define('ARCHIVE_FOLDER',$folder."\\archive");
 
 // Create Project structure from
+require_once('logger.php');
 require_once('cparams.php');
 //require_once($project_folder.'\\settings.php');
 require_once('encdec.php');
 require_once('gan.php');
 require_once('jirarest.php');
-require_once('jira.php');
 require_once('filter.php');
 require_once('jsgantt.php');
 require_once('history.php');
@@ -78,8 +78,10 @@ require_once('openairifc.php');
 //require_once('project_settings.php');
 
 //ERRORS
-define('ERROR','error');
-define('WARN','warn');
+define('CRITICALERROR','CRITICALERROR');
+define('ERROR','ERROR');
+define('WARNING','WARNING');
+define('INFO','INFO');
 //define("WEBLINK",$JIRA_URL.'/browse/');
 //define('JIRA_URL',$JIRA_URL);
 //define('QUERY',$QUERY);
@@ -91,7 +93,41 @@ date_default_timezone_set('Asia/Karachi');
 
 class Obj{
 }
+function LogMessage($type,$module,$msg)
+{
+	global $logger;
+	if($type == CRITICALERROR)
+		$logger->Add($module,$msg,ERROR);
+	else
+		$logger->Add($module,$msg,$type);
+	if($type == CRITICALERROR)
+	{
+		CallExit();
+	}
+}	
 
+function CallExit()
+{
+	global $logger;
+	global $_SERVER;
+	
+	if(strpos($_SERVER['HTTP_ACCEPT'],'json')!=FALSE)
+	{
+		$a = array();
+		$a['ERROR'] = $logger->GetTypeData('ERROR');
+		$a['WARNING'] = $logger->GetTypeData('WARNING');
+		$a['INFO'] = $logger->GetTypeData('INFO');
+		echo json_encode($a);
+	}
+	else
+	{
+		$logger->ShowTypeData('ERROR');
+		$logger->ShowTypeData('WARNING');
+		$logger->ShowTypeData('INFO');
+		
+	}
+	exit();
+}
 function dlog($log)
 {
 	$traces = debug_backtrace();

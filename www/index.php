@@ -50,7 +50,8 @@ define('COMMENT_FOLDER', $prefix.DGANTTFOLDER."/modules/comment");
 define('BASELINE_FOLDER', $prefix.DGANTTFOLDER."/modules/baseline");
 define('TIMECHART_FOLDER',$prefix.DGANTTFOLDER."/modules/timechart");
 define('RMO_FOLDER',$prefix.DGANTTFOLDER."/modules/rmo");
-
+define('SYNC_FOLDER',$prefix.DGANTTFOLDER."/modules/sync");
+define('MAP_FOLDER',$prefix.DGANTTFOLDER."/modules/map");
 
 if(isset($baseline))
 	define('JSGANTT_FILE', JSGANTT_FOLDER."getxml.php?organization=".$organization."&project_name=".$project_name."&subplan=".$subplan."&baseline=".$baseline);
@@ -74,6 +75,7 @@ switch(strtolower($cmd))
 	case 'status':
 	case 'auditreport':
 	case 'rmo':
+	case 'map':
 		require_once(DGANTTFOLDER.'/modules/'.$cmd.'/index.php');
 		break;
 	default:
