@@ -179,7 +179,7 @@ class Jirarest
                 if ($ch_error) 
 		{ 
 			//trace('error',"$ch_error");
-			LogMessage(ERROR,__CLASS_,$ch_error);
+			LogMessage(ERROR,__CLASS__,$ch_error);
 		} 
 		else 
 		{ 
