@@ -1411,6 +1411,7 @@ class GanTask
 	private $project=null;
 	private $cproperties;
 	private $deadlineGiven=0;
+	private $issuetype =  null;
 	
 	//<task id="0" name="Project-1" color="#8cb6ce" meeting="false" start="2017-08-24" duration="1" complete="0" expand="true">
 	function __construct($project,$parenttask,$doc, $DOMElement=null,$cproperties=null,$jira=null,$rebuild=0,$tstart=null,$tend=null)
@@ -1561,6 +1562,9 @@ class GanTask
 	{
 		switch($name)
 		{
+			case 'IssueType';
+				$this->issuetype =  $value;
+				break;
 			case 'Deadline':
 				$override = 0;
 				$dl = strtotime($value);
@@ -1732,6 +1736,9 @@ class GanTask
 	{
 		switch($name)
 		{
+			case 'IssueType':
+				return $this->issuetype;
+				break;
 			case 'ForcePlannedResource':
 				return $this->forceplannedresource;
 				break;

@@ -66,7 +66,8 @@ class History
 		$obj->TrackingEndDate = $task->TrackingEndDate;
 		$obj->IsTrakingDatesGiven = $task->IsTrakingDatesGiven;
 		$obj->Duration = $task->Duration;
-		
+		$obj->IssueType = $task->IssueType;
+		//echo "------------------".$obj->IssueType.EOL;
 		if($task->ActualEffort>0)
 			$obj->Estimated=1;
 		else
@@ -108,7 +109,6 @@ class History
 	public function GetLogData($gan)
 	{
 		$tree;
-
 		foreach($gan->TaskTree as $task)
 		{
 			$tree = $this->ProcessTask($task);

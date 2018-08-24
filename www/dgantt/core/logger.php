@@ -1,7 +1,10 @@
 <?php
 function cmpx($a, $b)
 {
-	return strcmp($a->module, $b->module);
+	if ($a->module==$b->module) 
+		return 0;
+	return ($a->module<$b->module)?-1:1;
+	//return strcmp($a->module, $b->module);
 }
 	
 class Logger

@@ -144,13 +144,18 @@ class Tj
 	}
 	function FlushTask($task)
 	{
+		$pos  = strpos($task->Name,'$');// Task name with $ sign causes schedular error
+		if($pos != FALSE)
+			$taskname = str_replace("$","-",$task->Name);
+		else
+			$taskname = $task->Name;
 		$header = "";
 		$spaces = "";
 		for($i=0;$i<$task->Level-1;$i++)
 			$spaces = $spaces."     ";
 		
 		$tag = str_replace(".", "a", $task->ExtId);
-		$header = $header.$spaces.'task t'.$tag.' "'.$task->Name.'" {'."\n";
+		$header = $header.$spaces.'task t'.$tag.' "'.$taskname.'" {'."\n";
 		
 		if($task->IsParent == 0)
 			$header = $header.$spaces."   complete ".round($task->Progress,0)."\n";

@@ -13,7 +13,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 */
-$data_url = "resource=data.php&board=".$board."&rebuild=".$rebuild;
+$data_url = "resource=data.php&board=".$board."&rebuild=".$rebuild."&oa=".$oa;
 
 ?>
 

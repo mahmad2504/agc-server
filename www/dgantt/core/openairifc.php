@@ -43,8 +43,8 @@ class OpenAirIfc
 			return;
 		if($rebuild==1)
 		{
-			echo "<p style='color:green;'>Rebuilding OpenAir Database</p>";
-			
+			$msg = "Rebuilding OpenAir Database";
+			LogMessage(INFO,__CLASS__,$msg);
 			//echo "Rebuilding OpenAir Database".EOL;
 			
 			$oa = new OpenAir($OACONF->api_key,"default",'1.0','agc','1.1',$OACONF->url);
@@ -63,7 +63,8 @@ class OpenAirIfc
 			}
 			else
 			{
-				echo "Warning :Project name[".$name."] in plan is not an openair project".EOL;
+				$msg = "Warning :Project name[".$name."] in plan is not an openair project";
+				LogMessage(WARNING,__CLASS__,$msg);
 				return;
 			}
 			$users = array();

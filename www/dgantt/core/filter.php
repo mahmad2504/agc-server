@@ -16,7 +16,7 @@ along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 class Filter {
-	private $tasks;
+	private $tasks=null;
 	private $query;
 	private $cached=0;
 	public $task = null;
@@ -136,7 +136,6 @@ class Filter {
 			//if(strtotime($last_update_date) 
 			$data = file_get_contents($name);
 			$this->tasks = json_decode( $data );
-					
 			if($cached==1)
 			{
 				$this->cached=1;
@@ -203,10 +202,13 @@ class Filter {
 				}
 				return;
 			}
+			$this->tasks = null;
 			for($i=0;$i<count($tasks);$i++)
 			{
 				$worklogs = Jirarest::GetWorkLog($tasks[$i]['key']);
-				$tasks[$i]['worklogs'] =  $worklogs;	
+				$tasks[$i]['worklogs'] =  $worklogs;
+				if($this->tasks == null)
+					$this->tasks =  new Obj();
 				$this->tasks->$tasks[$i]['key'] = $tasks[$i];
 			}
 			$msg = $this->task->Name." [Rebuild]";

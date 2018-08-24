@@ -83,7 +83,7 @@ class Sync
 		if($found == 0)
 		{
 			$msg = "OA Timesheet not found for user <span style='color:red;'>".$resource->Name."(id=".$resource->OpenAirName.")</span>";
-			LogMessage('INFO',__CLASS__,$msg);
+			LogMessage(INFO,__CLASS__,$msg);
 		}
 		return 1;
 	}
@@ -184,9 +184,14 @@ class Sync
 		$data = json_decode($result);
 		if($data == null)
 		{
-			echo "Error in Plan".EOL;
-			echo $result.EOL;
-			exit();
+			$msg = "Error in Plan";
+			LogMessage(ERROR,__CLASS__,$msg);
+
+			LogMessage(CRITICALERROR,__CLASS__,$result);
+				
+			//echo "Error in Plan".EOL;
+			//echo $result.EOL;
+			//exit();
 		}
 		//var_dump($data).EOL;
 		//$tj = new Tj($gan);
@@ -266,7 +271,10 @@ class Sync
 		else
 		{
 			if($oa == 1)
-				echo "OpenAir project name not set. Cannot sync with OpenAir".EOL;
+			{
+				$msg = "OpenAir project name not set. Cannot sync with OpenAir";
+				LogMessage(ERROR,__CLASS__,$msg);
+			}
 		}
 		
 		global $save;
@@ -291,8 +299,8 @@ class Sync
 			copy($GAN_FILE,$base."/".$ganname);
 			//echo $GAN_FILE."-->".$base."/".$ganname.EOL;
 			copy($LOG_FOLDER."/".GetToday('Y-m-d'),$base."/logdata");
-			echo "<h3>Base line saved</h3>";
-			
+			$msg = "Base line saved";
+			LogMessage(INFO,__CLASS__,$msg);
 		}
 	
 		//global $TJ_FILE;
@@ -318,7 +326,8 @@ class Sync
 				if(strtotime($today)>strtotime($gan->End))
 				{
 					//echo $gan->Progress.'% Complete .Project end date was '.$gan->End.EOL;
-					echo "<div style='color:red;'>Project end date was ".$gan->End."</div>";
+					$msg = 'Project end date was '.$gan->End;
+					ogMessage(ERROR,__CLASS__,$msg);
 				}
 				$history->Add($today,$gan);
 			}
@@ -385,7 +394,7 @@ class Sync
 			{
 				$url = '<a href="'.$gan->Jira->url.'/browse/'.$task->JiraId.'">'.$task->JiraId.'</a>';
 				$msg = "Overriding resource ".$resource->Name." for ".$url." @".$task->Id;
-				LogMessage('WARNING',__CLASS__,$msg);LogMessage('WARNING',__CLASS__,$msg);
+				LogMessage(WARNING,__CLASS__,$msg);
 				//echo "Info: Overriding resource ".$resource->Name." for ".$url." @".$task->Id.EOL;
 				$task->ForcePlannedResource = 2;
 			}
@@ -415,6 +424,8 @@ class Sync
 		if(count($jtask->issuelinks[DEPENDENCY_DEPENDS])>0)
 			$gan->AddDependency($task,$jtask->issuelinks[DEPENDENCY_DEPENDS]);
 		}
+		$task->IssueType = $jtask->issuetype;
+		
 		//var_dump($jtask->issuelinks[DEPENDENCY_DEPENDS]);
 		$jtask->Gtask = $task;
 		$task->Jtask = $jtask;
@@ -514,7 +525,7 @@ class Sync
 					if( $row->level != ($jtask->Gtask->Level - $baselevel))
 					{
 						$msg = "Warning: ".$jtask->Gtask->Name."(".$key.")@ ".$jtask->Gtask->Id." misplaced in jira structure";
-						LogMessage('WARNING',__CLASS__,$msg);
+						LogMessage(WARNING,__CLASS__,$msg);
 					}
 					break;
 				}
@@ -615,7 +626,7 @@ class Sync
 								if(is_numeric($tagparts[1]))
 								{
 									$msg = "Warning: ".$task->Name." @".$task->Id." is misplaced and must be removed from plan";
-									LogMessage('WARNING',__CLASS__,$msg);
+									LogMessage(WARNING,__CLASS__,$msg);
 							}
 						}
 						}
@@ -627,17 +638,18 @@ class Sync
 		}
 		foreach($dups as $key=>$name)
 		{
-			echo "Error: ".$name." appearing multiple times @ ";
+			$msg = $name." appearing multiple times @ ";
 			$delim = "";
 			foreach($gan->TaskList as $task)
 			{
 				if($task->JiraId == $key)
 				{
-					echo $delim.$task->Id;
+					$msg .= $delim.$task->Id;
 					$delim = ",";
 				}
 			}
-			echo EOL;
+			LogMessage(WARNING,__CLASS__,$msg);
+			
 		}
 		foreach($jtasksa as $jtasks)
 		{
@@ -751,18 +763,15 @@ class Sync
 		}
 		foreach($duplicates as $task)
 		{
+			$msg = "";
 			if(strlen($task->JiraId)>0)
 			{
 				//<a href="url">link text</a>
 				$url = '<a href="'.$gan->Jira->url.'/browse/'.$task->JiraId.'">'.$task->JiraId.'</a>';
 				$msg = "Warning: ".$url." ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
-				LogMessage('WARNING',__CLASS__,$msg);
 			}
 			else
-			{
 				$msg = "Warning: ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
-				LogMessage('WARNING',__CLASS__,$msg);
-			}
 			$delim = "";
 											
 			foreach($queries as $query)
@@ -770,11 +779,13 @@ class Sync
 					$key = $task->JiraId;
 					if(isset($query->Jiratasks->$key))
 					{
-						echo $delim.$query->Task->Id;
+					$msg = $msg.$delim.$query->Task->Id;
 						$delim = ",";
 					}
 			}
-			echo EOL;
+			LogMessage(WARNING,__CLASS__,$msg);
+		
+			//echo EOL;
 		}
 		foreach($queries as $query)
 		{
@@ -801,7 +812,7 @@ class Sync
 				if(strlen($child->JiraId)>0)
 				{
 				        $msg= "Delete ".$child->JiraId." from plan. It looks misplaced under this filter ".$filtertask->Name;
-					LogMessage('ERROR',__CLASS__,$msg);
+					LogMessage(ERROR,__CLASS__,$msg);
 				}
 			}
 			//if(count($child->Children)>0)

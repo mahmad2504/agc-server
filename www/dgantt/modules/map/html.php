@@ -2,7 +2,7 @@
 
 <html>
 	<head>
-		<title>ECOTree Simple Tree 4</title>
+		<title>Map View</title>
 		
 		<?php echo '<script type="text/javascript" src="'.MAP_FOLDER.'/ECOTree.js"></script>';?>
 		<?php echo '<link type="text/css" rel="stylesheet" href="'.MAP_FOLDER.'/ECOTree.css" /> ';?>
@@ -53,9 +53,10 @@ $(document).ready(function()
 					var status = array[i].status;
 					var progress = array[i].progress;
 					var deadline = array[i].deadline;
+					var issuetype =  array[i].issuetype;
 					var end = array[i].end;
 					var delayed = array[i].delayed;
-					t.add(url,meta,id,pid,text,null,null,"#F08080",null,progress,status,deadline,end,delayed);
+					t.add(url,meta,id,pid,text,null,null,"#F08080",null,progress,status,deadline,end,delayed,issuetype);
 				}
 				//t.add('http://www.google.com','this is message 1-1',1,-1,'species',null,null,"#F08080");
 				t.UpdateTree();

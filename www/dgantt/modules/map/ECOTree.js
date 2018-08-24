@@ -27,7 +27,7 @@
 |     Version: 1.0
 \------------------------------------------------------------------------------------------*/
 
-ECONode = function (id, pid, dsc, w, h, c, bc, target, meta, progress,status,deadline,end,delayed) {
+ECONode = function (id, pid, dsc, w, h, c, bc, target, meta, progress,status,deadline,end,delayed,issuetype) {
 	this.id = id;
 	this.pid = pid;
 	this.dsc = dsc;
@@ -40,6 +40,7 @@ ECONode = function (id, pid, dsc, w, h, c, bc, target, meta, progress,status,dea
 	this.deadline = deadline;
 	this.end = end;
 	this.delayed = delayed;
+	this.issuetype = issuetype;
 	this.target = target;
 	this.meta = meta;
 	
@@ -743,11 +744,13 @@ ECOTree.prototype._drawTree = function () {
 					this.ctx.strokeStyle = border;
 					switch (this.config.nodeFill) {
 						case ECOTree.NF_GRADIENT:							
-							var lgradient = this.ctx.createLinearGradient(node.XPosition,0,node.XPosition+node.w,0);
-							lgradient.addColorStop(0.0,((node.isSelected)?this.config.nodeSelColor:color));
-							lgradient.addColorStop(1.0,"#F5FFF5");
-							this.ctx.fillStyle = lgradient;
-							this.ctx.fillStyle = this.config.nodeSelColor;
+							//var lgradient = this.ctx.createLinearGradient(node.XPosition,0,node.XPosition+node.w,0);
+							//lgradient.addColorStop(0.0,((node.isSelected)?this.config.nodeSelColor:color));
+							//lgradient.addColorStop(1.0,"#F5FFF5");
+							//this.ctx.fillStyle = lgradient;
+							//this.ctx.fillStyle = '#ff0000';
+							//this.ctx.fillRect(node.XPosition,node.YPosition,node.w,node.h);
+			
 							if(node.status == 'RESOLVED')
 							{
 								this.ctx.fillStyle = '#A8A8A8';
@@ -821,6 +824,14 @@ ECOTree.prototype._drawTree = function () {
 						s.push('<a id="t' + node.id + '" href="'+node.target+'">');
 						s.push(node.dsc);
 						s.push('</a>');
+						if((node.issuetype == null)||(node.issuetype == undefined))
+						{
+						}
+						else
+						{
+							var issuetype = node.issuetype.substring(0, 6);
+							s.push('<span style="font-size:8;">&nbsp&nbsp'+issuetype+'</span');
+						}
 					}				
 					else
 					{						
@@ -920,7 +931,7 @@ ECOTree.prototype.UpdateTree = function () {
 	}
 }
 
-ECOTree.prototype.add = function (target,meta, id, pid, dsc, w, h, c, bc,progress,status,deadline,end,delayed) {	
+ECOTree.prototype.add = function (target,meta, id, pid, dsc, w, h, c, bc,progress,status,deadline,end,delayed,issuetype) {	
 	var nw = w || this.config.defaultNodeWidth; //Width, height, colors, target and metadata defaults...
 	var nh = h || this.config.defaultNodeHeight;
 	var color = c || this.config.nodeColor;
@@ -944,7 +955,7 @@ ECOTree.prototype.add = function (target,meta, id, pid, dsc, w, h, c, bc,progres
 				}
 			}	
 		}
-	var node = new ECONode(id, pid, dsc, nw, nh, color, border, tg, metadata,progress,status,deadline,end,delayed);	//New node creation...
+	var node = new ECONode(id, pid, dsc, nw, nh, color, border, tg, metadata,progress,status,deadline,end,delayed,issuetype);	//New node creation...
 	node.nodeParent = pnode;  //Set it's parent
 	pnode.canCollapse = true; //It's obvious that now the parent can collapse	
 	var i = this.nDatabaseNodes.length;	//Save it in database

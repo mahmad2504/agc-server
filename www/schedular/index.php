@@ -21,7 +21,8 @@ mkdir($folder);
 
 $gan = null;
 $data=array();
-
+// To save test data uncomment and copy that file under data folder
+//file_put_contents("testdata",$_POST['GAN']);
 $gan = unserialize($_POST['GAN']);
 $tj = new Tj($gan);
 $tj->Save($folder .'/plan.tjp');

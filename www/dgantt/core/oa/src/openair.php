@@ -115,10 +115,11 @@ class OpenAir
         }
 		else
 		{
-			echo "Http Error Code is ".$httpcode;
-            return -1;
-        }
-    }
+			$msg = "Http Error Code is ".$httpcode;
+			LogMessage(ERROR,__CLASS__,$msg);
+                        return -1;
+                 }
+       }
 	
 	private function _buildRequest()
 	{
@@ -431,7 +432,13 @@ class OpenAir
 		$h3 = $this->ReadUserById($h2,'userid');
 		$this->Execute();
 		$data = $h3->Data('id','name','currency');
-		$h3->toString('id','name','currency');
+		LogMessage(INFO,__CLASS__,"OA users list");
+		foreach($data as $d)
+		{
+			$msg = $d['id']." ".$d['name']." ".$d['currency'];
+			LogMessage(INFO,__CLASS__,$msg);
+		}
+		//$h3->toString('id','name','currency');
 		return $data;
 	}
 }

@@ -42,7 +42,7 @@ function ReadTaskData($task,$pid)
 	
 	if($task->Id == -1)
 		$task->Id = 1000;
-	
+	$obj->issuetype =  $task->IssueType;
 	$obj->id = $task->Id;
 	$obj->pid = $pid;
 	$obj->progress = $task->Progress;
