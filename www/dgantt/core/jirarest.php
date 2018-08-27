@@ -107,7 +107,7 @@ class Jirarest
 		$result = curl_exec($curl);
 		$ch_error = curl_error($curl); if ($ch_error) 
 		{ 
-			LogMessage(ERROR,__CLASS__,$ch_error);
+			LogMessage(ERROR,__CLASS__,$ch_error,1);
 		} 
 		else 
 		{ 
@@ -146,7 +146,7 @@ class Jirarest
 		$ch_error = curl_error($curl); if ($ch_error) 
 		{ 
 			//trace('error',"$ch_error");
-			LogMessage(ERROR,__CLASS__,$ch_error);
+			LogMessage(ERROR,__CLASS__,$ch_error,1);
 		} 
 		else 
 		{ 
@@ -157,7 +157,7 @@ class Jirarest
 		if(isset($returnvalue["errorMessages"]))
 		{
 			//trace(ERROR,$returnvalue["errorMessages"][0]);
-			LogMessage(ERROR,__CLASS__,$returnvalue["errorMessages"][0]);
+			LogMessage(ERROR,__CLASS__,$returnvalue["errorMessages"][0],1);
 		}
 		
 	}
@@ -179,7 +179,7 @@ class Jirarest
                 if ($ch_error) 
 		{ 
 			//trace('error',"$ch_error");
-			LogMessage(ERROR,__CLASS__,$ch_error);
+			LogMessage(ERROR,__CLASS__,$ch_error,1);
 		} 
 		else 
 		{ 
@@ -208,7 +208,7 @@ class Jirarest
 		if ($ch_error) 
 		{ 
 			$msg = $ch_error;
-			LogMessage(CRITICALERROR,__CLASS__,$msg);
+			LogMessage(CRITICALERROR,__CLASS__,$msg,1);
 			//echo "Mode:Offline ...".EOL;
 			self::$offline=1;
 			return null;
@@ -220,7 +220,7 @@ class Jirarest
 		if (strpos($result, 'Unauthorized') !== false) 
 		{
 			$msg = "Jira error :: ".$result;
-			LogMessage(CRITICALERROR,__CLASS__,$msg);
+			LogMessage(CRITICALERROR,__CLASS__,$msg,1);
 		}
     //echo 'true';
 	//echo($result);
@@ -229,7 +229,7 @@ class Jirarest
 		if(isset($returnvalue["errorMessages"]))
 		{
 			$msg = "Jira error :: ".$returnvalue["errorMessages"][0];
-			LogMessage(CRITICALERROR,__CLASS__,$msg);
+			LogMessage(CRITICALERROR,__CLASS__,$msg,1);
 		}
 		self::$offline=0;
 		return $returnvalue;
@@ -259,7 +259,7 @@ class Jirarest
 		$ch_error = curl_error($curl); 
 		if ($ch_error) 
 		{ 
-			LogMessage(CRITICALERROR,__CLASS__,$ch_error);
+			LogMessage(CRITICALERROR,__CLASS__,$ch_error,1);
 			//trace('error',$ch_error); 
 			//exit(-1);
 		} 
@@ -272,7 +272,7 @@ class Jirarest
 		if(isset($json->forestUpdates[1]->error))
 		{
 			$msg = "Jira structure does not exist";
-			LogMessage(CRITICALERROR,__CLASS__,$ch_error);
+			LogMessage(CRITICALERROR,__CLASS__,$ch_error,1);
 		}
 		
 		$formula_array = explode(",",$json->forestUpdates[1]->formula);
@@ -308,7 +308,7 @@ class Jirarest
 		$ch_error = curl_error($curl); 
 		if ($ch_error) 
 		{ 
-			LogMessage(ERROR,__CLASS__,$ch_error);
+			LogMessage(ERROR,__CLASS__,$ch_error,1);
 		} 
 		else 
 		{ 
@@ -332,7 +332,7 @@ class Jirarest
 		$ch_error = curl_error($curl); 
 		if ($ch_error) 
 		{ 
-			LogMessage(ERROR,__CLASS__,$ch_error);
+			LogMessage(ERROR,__CLASS__,$ch_error,1);
 		} 
 		else 
 		{ 
@@ -725,7 +725,7 @@ class Jirarest
 				break;
 			default:
 				$msg = "Unhandled field ".$field;
-				LogMessage(ERROR,__CLASS__,$msg);
+				LogMessage(ERROR,__CLASS__,$msg,1);
 				return "";
 			
 		}
@@ -798,7 +798,7 @@ class Jirarest
                 if ($ch_error) 
 		{ 
 			$msg = "CURL Error: ".$ch_error;
-			LogMessage(ERROR,__CLASS__,$msg);
+			LogMessage(ERROR,__CLASS__,$msg,1);
 		} 
 		else 
 		{ 
@@ -994,7 +994,7 @@ class Jirarest
 			if($ts == 0)
 			{
 				$msg =  "Some work log of task ".$key." is wrong";
-				LogMessage(WARNING,__CLASS__,$msg);
+				LogMessage(WARNING,__CLASS__,$msg,1);
 			}
 			$worklog->id = $log['id'];
 			$start_date= explode("T", $log['started'], 2);

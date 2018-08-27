@@ -93,13 +93,13 @@ date_default_timezone_set('Asia/Karachi');
 
 class Obj{
 }
-function LogMessage($type,$module,$msg)
+function LogMessage($type,$module,$msg,$priority=0)
 {
 	global $logger;
 	if($type == CRITICALERROR)
-		$logger->Add($module,$msg,ERROR);
+		$logger->Add($module,$msg,ERROR,$priority);
 	else
-		$logger->Add($module,$msg,$type);
+		$logger->Add($module,$msg,$type,$priority);
 	if($type == CRITICALERROR)
 	{
 		CallExit();
@@ -110,14 +110,28 @@ function CallExit()
 {
 	global $logger;
 	global $_SERVER;
+	$a = array();
+	//$LogMessage('PROJECT','PROJECT',$project_name);
+	//$LogMessage('PROJECT','PROJECT',$project_name);
+
+	if(isset($_SERVER['HTTP_IDENTITY']))
+		$a['IDENTITY'] = $_SERVER['HTTP_IDENTITY'];
 	
+	if(isset($_SERVER['HTTP_ACCEPT']))
+	{
 	if(strpos($_SERVER['HTTP_ACCEPT'],'json')!=FALSE)
 	{
-		$a = array();
 		$a['ERROR'] = $logger->GetTypeData('ERROR');
 		$a['WARNING'] = $logger->GetTypeData('WARNING');
 		$a['INFO'] = $logger->GetTypeData('INFO');
 		echo json_encode($a);
+	}
+	else
+	{
+		$logger->ShowTypeData('ERROR');
+		$logger->ShowTypeData('WARNING');
+		$logger->ShowTypeData('INFO');
+		}
 	}
 	else
 	{

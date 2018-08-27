@@ -440,6 +440,7 @@ ECOTree._canvasNodeClickHandler = function (tree,target,nodeid) {
 	var url = "map?board="+node.dsc;
 	//console.log(node.url);
 	window.open(url,'_blank');
+	document.getElementById('popup').style.display = 'none';
 	//tree.selectNode(nodeid,true);
 }
 
@@ -537,7 +538,35 @@ ECOTree._apportion = function (tree, node, level) {
                 firstChildLeftNeighbor = firstChild.leftNeighbor;
         }
 }
+ECOTree.val = 0;
+ECOTree._FindOffset = function (tree, node) {
+	//node.YPosition = node.YPosition + 500;
 
+	var n = node._getChildrenCount();
+	var pos = node.YPosition;
+
+	if(pos < ECOTree.val)
+		ECOTree.val =  pos;
+	for(var i = 0; i < n; i++)
+	{
+		var iChild = node._getChildAt(i);
+
+		ECOTree._FindOffset(tree, iChild);
+	}
+}
+ECOTree._Adjust = function (tree, node) {
+	//node.YPosition = node.YPosition + 500;
+
+	var n = node._getChildrenCount();
+	node.YPosition = node.YPosition - ECOTree.val;
+
+	for(var i = 0; i < n; i++)
+	{
+		var iChild = node._getChildAt(i);
+
+		ECOTree._Adjust(tree, iChild);
+	}
+}
 ECOTree._secondWalk = function (tree, node, level, X, Y) {
 
         if(level <= tree.config.iMaxDepth)
@@ -601,7 +630,7 @@ ECOTree._secondWalk = function (tree, node, level, X, Y) {
             var rightSibling = node._getRightSibling();
             if(rightSibling != null)
                 ECOTree._secondWalk(tree, rightSibling, level, X, Y);
-        }	
+        }
 }
 
 ECOTree.prototype._positionTree = function () {	
@@ -625,6 +654,10 @@ ECOTree.prototype._positionTree = function () {
 	}	
 	
 	ECOTree._secondWalk(this.self, this.root, 0, 0, 0);	
+	ECOTree.val = 0;
+	ECOTree._FindOffset(this.self, this.root);
+	if(ECOTree.val < 0)
+	ECOTree._Adjust(this.self, this.root);
 }
 
 ECOTree.prototype._setLevelHeight = function (node, level) {	
@@ -913,6 +946,7 @@ ECOTree.prototype.toString = function () {
 
 ECOTree.prototype.UpdateTree = function () {	
 	this.elm.innerHTML = this;
+	document.getElementById('popup').style.display = 'none';
 	if (this.render == "CANVAS") {
 		var canvas = document.getElementById("ECOTreecanvas");
 		if (canvas && canvas.getContext)  {

@@ -1,4 +1,4 @@
-<?php $data_url = "resource=data.php&board=".$board; ?>
+<?php $data_url = "ui=0&board=".$board; ?>
 
 <html>
 	<head>

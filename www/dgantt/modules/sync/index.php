@@ -1,9 +1,14 @@
 <?php
-if(isset($_GET['resource']))
+$ui=1;
+if(isset($_GET['ui']))
 {
-	require_once($_GET['resource']);
+	if($_GET['ui'] == 0)
+		$ui = 0;
 }
-else
-	require_once('html.php');
 
+if($ui == 1)
+	require_once('html.php');
+else
+	require_once('data.php');
+	
 ?>

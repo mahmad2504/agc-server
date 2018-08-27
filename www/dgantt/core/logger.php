@@ -6,15 +6,22 @@ function cmpx($a, $b)
 	return ($a->module<$b->module)?-1:1;
 	//return strcmp($a->module, $b->module);
 }
+
+function cmpx2($a, $b)
+{
+	return $a->priority <= $b->priority ;
+		
+}
 	
 class Logger
 {
 	private $logs = array();
-	public function Add($module,$msg,$type='WARNING')
+	public function Add($module,$msg,$type='WARNING',$priority=0)
 	{
 		$obj = new Obj();
 		$obj->module = $module;
 		$obj->message = $msg;
+		$obj->priority = $priority;
 		$obj->type = $type;
 		$md5 = md5($obj->module.$obj->type.$obj->message);
 		$this->logs[$md5] = $obj;
@@ -108,6 +115,7 @@ class Logger
 			}
 		}
 		usort($arr, "cmpx");
+		usort($arr, "cmpx2");
 		return $arr;
 	}
 }

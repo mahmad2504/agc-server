@@ -168,6 +168,8 @@ class Filter {
 			{
 				$worklogs = Jirarest::GetWorkLog($tasks[$i]['key']);
 				$tasks[$i]['worklogs'] =  $worklogs;
+				if($this->tasks == null)
+					$this->tasks =  new Obj();
 				$this->tasks->$tasks[$i]['key'] = $tasks[$i];
 			}
 			$msg = $this->task->Name." [Updated]";
