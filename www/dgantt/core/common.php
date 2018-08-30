@@ -27,10 +27,6 @@ along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 require_once('cparams.php');
 
 $organization_folder = DATA_FOLDER."/data/".$organization;
-if (!is_dir($organization_folder)) {
-   trace("Organization ".$organization." ".' Does not exist','MSG');
-   exit();
-}
 
 $configuration_folder = $organization_folder."/configuration/"; // end backslash must
 $project_folder = $organization_folder."/".$project_name;
@@ -38,15 +34,6 @@ $gan_folder = DATA_FOLDER."/projects/".$organization."/".$project_name;
 
 define('OPENAIR_DATA_FILENAME',$project_folder."/".$project_name.'/openair');
 
-if (!is_dir($project_folder)) {
-   trace("Project ".$project_name." ".' Does not exist','MSG');
-   exit();
-}
-
-if (!is_dir($gan_folder)) {
-   trace("Project ".$project_name." ".' Does not exist','MSG');
-   exit();
-}
 
 
 require_once('globals.php');
@@ -93,6 +80,12 @@ date_default_timezone_set('Asia/Karachi');
 
 class Obj{
 }
+
+function TagLogs($tag,$value)
+{
+	global $logger;
+	$logger->Tag($tag,$value);
+}
 function LogMessage($type,$module,$msg,$priority=0)
 {
 	global $logger;
@@ -105,8 +98,7 @@ function LogMessage($type,$module,$msg,$priority=0)
 		CallExit();
 	}
 }	
-
-function CallExit()
+function CallExit($save=1)
 {
 	global $logger;
 	global $_SERVER;
@@ -117,28 +109,48 @@ function CallExit()
 	if(isset($_SERVER['HTTP_IDENTITY']))
 		$a['IDENTITY'] = $_SERVER['HTTP_IDENTITY'];
 	
+	$a['TAG'] = $logger->GetTypeData('TAG');
+	$a['ERROR'] = $logger->GetTypeData('ERROR');
+	$a['WARNING'] = $logger->GetTypeData('WARNING');
+	$a['INFO'] = $logger->GetTypeData('INFO');
+	
 	if(isset($_SERVER['HTTP_ACCEPT']))
 	{
 	if(strpos($_SERVER['HTTP_ACCEPT'],'json')!=FALSE)
 	{
-		$a['ERROR'] = $logger->GetTypeData('ERROR');
-		$a['WARNING'] = $logger->GetTypeData('WARNING');
-		$a['INFO'] = $logger->GetTypeData('INFO');
 		echo json_encode($a);
 	}
 	else
 	{
-		$logger->ShowTypeData('ERROR');
-		$logger->ShowTypeData('WARNING');
-		$logger->ShowTypeData('INFO');
+			foreach($a as $type=>$logs)
+			{
+				foreach($logs as $log)
+				{
+					echo $log->module."::".$log->message.EOL;
+				}
+			}
 		}
 	}
 	else
 	{
-		$logger->ShowTypeData('ERROR');
-		$logger->ShowTypeData('WARNING');
-		$logger->ShowTypeData('INFO');
+		echo "ddd";
+		foreach($a as $logs)
+		{
+			foreach($logs as $log)
+			{
+				echo $log->module."::".$log->message.EOL;
+			}
+		}
 		
+	}
+	global $subplan;
+	global $project_folder;
+	$folder = $project_folder."/".$subplan;
+	$filename = $folder."/sync";
+	if($save == 1)
+	{
+		if(file_exists($folder))
+			file_put_contents($filename, serialize($logger));
 	}
 	exit();
 }

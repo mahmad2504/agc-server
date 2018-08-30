@@ -16,6 +16,10 @@ function cmpx2($a, $b)
 class Logger
 {
 	private $logs = array();
+	public function Tag($tag,$value)
+	{
+		$this->Add($tag,$value,'TAG');
+	}
 	public function Add($module,$msg,$type='WARNING',$priority=0)
 	{
 		$obj = new Obj();
@@ -75,20 +79,7 @@ class Logger
 		foreach($arr as $a)
 			echo $a->module."::".$a->message.EOL;
 	}
-	public function ShowTypeData($type)
-	{
-		$arr = array();
-		foreach($this->logs as $log)
-		{
-			if($type == $log->type)
-			{
-				$arr[] = $log;
-			}
-		}
-		usort($arr, "cmpx");
-		foreach($arr as $a)
-			echo $a->module."::".$a->message.EOL;
-	}
+
 	public function GetModuleData($module)
 	{
 		$arr = array();

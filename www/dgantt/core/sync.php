@@ -524,7 +524,7 @@ class Sync
 				{
 					if( $row->level != ($jtask->Gtask->Level - $baselevel))
 					{
-						$msg = "Warning: ".$jtask->Gtask->Name."(".$key.")@ ".$jtask->Gtask->Id." misplaced in jira structure";
+						$msg = $jtask->Gtask->Name."(".$key.")@ ".$jtask->Gtask->Id." misplaced in jira structure";
 						LogMessage(WARNING,__CLASS__,$msg);
 					}
 					break;
@@ -625,7 +625,7 @@ class Sync
 							{
 								if(is_numeric($tagparts[1]))
 								{
-									$msg = "Warning: ".$task->Name." @".$task->Id." is misplaced and must be removed from plan";
+									$msg = $task->Name." @".$task->Id." is misplaced and must be removed from plan";
 									LogMessage(WARNING,__CLASS__,$msg);
 							}
 						}
@@ -768,10 +768,10 @@ class Sync
 			{
 				//<a href="url">link text</a>
 				$url = '<a href="'.$gan->Jira->url.'/browse/'.$task->JiraId.'">'.$task->JiraId.'</a>';
-				$msg = "Warning: ".$url." ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
+				$msg = $url." ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
 			}
 			else
-				$msg = "Warning: ".$task->Name." @".$task->Id." appearing in multiple queries @ ";
+				$msg = $task->Name." @".$task->Id." appearing in multiple queries @ ";
 			$delim = "";
 											
 			foreach($queries as $query)

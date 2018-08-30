@@ -63,19 +63,20 @@ switch(strtolower($cmd))
 {
 	case 'timechart':
 	case 'baseline':
-	case 'comment':
 	case 'report':
 	case 'timesheet':
-	case 'dependencies':
 	case 'sync':
 	case 'gantt':
 	case 'dashboard':
-	case 'ru':
 	case 'calendar':
 	case 'status':
-	case 'auditreport':
-	case 'rmo':
 	case 'map':
+		require_once(DGANTTFOLDER.'/modules/'.$cmd.'/index.php');
+		break;
+	case 'syncstatus':
+		$cmd = 'sync';
+		$_GET['cached'] = 1;
+		$_GET['token'] = 1;
 		require_once(DGANTTFOLDER.'/modules/'.$cmd.'/index.php');
 		break;
 	default:

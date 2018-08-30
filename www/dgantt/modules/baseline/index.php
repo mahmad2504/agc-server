@@ -16,6 +16,11 @@ along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 
 require_once(COMMON);
 
+if(!file_exists($GAN_FILE))
+{
+	echo "Project Does Not Exist".EOL;
+	exit();
+}
 
 if(file_exists($BASELINE_FOLDER))
 {

@@ -29,6 +29,12 @@ $argc = count($path) - 1 -$depth;
 
 switch($argc)
 {
+	case 1:
+		$organization = 'none';
+		$project_name = 'none';
+		$plan = 'none';
+		$cmd = $path[$depth+1];
+		break;
 	case 2:
 		$organization = $path[$depth+1];
 	$project_name = 'none';
