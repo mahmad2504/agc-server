@@ -71,6 +71,7 @@ switch(strtolower($cmd))
 	case 'calendar':
 	case 'status':
 	case 'map':
+	case 'backup':
 		require_once(DGANTTFOLDER.'/modules/'.$cmd.'/index.php');
 		break;
 	case 'syncstatus':

@@ -45,3 +45,9 @@ div{
     background-color:#7887AB;
     flex-grow: 1;
 }
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+}

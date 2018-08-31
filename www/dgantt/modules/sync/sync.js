@@ -1,3 +1,22 @@
+function DoBackup()
+{
+	console.log("Doing backup");
+	$.ajax(
+	{     
+		headers: { 
+			Accept : "text/json; charset=utf-8",
+			"identity":current,
+		},
+		url : location.origin + "/backup",
+		data: '', 		
+		success : function(data)
+		{
+			console.log("Backup Done");
+			$('#top').append('<p style="font-size:70%;">Done</p>');
+			SyncTimer();
+		}
+	});
+}
 function LoadUrl(obj)
 {
 	var id=current;
@@ -216,6 +235,10 @@ function LoadUrl(obj)
 			if(current >= count)
 			{
 				current=0;
+				{
+					$("#image").remove();
+					$("#data").css("visibility", "visible");
+				}
 			}
 			else
 			{
