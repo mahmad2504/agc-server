@@ -327,7 +327,7 @@ class Sync
 				{
 					//echo $gan->Progress.'% Complete .Project end date was '.$gan->End.EOL;
 					$msg = 'Project end date was '.$gan->End;
-					ogMessage(ERROR,__CLASS__,$msg);
+					LogMessage(ERROR,__CLASS__,$msg);
 				}
 				$history->Add($today,$gan);
 			}
