@@ -34,6 +34,12 @@ $milestone = new Analytics($board);
 $ExtId = $milestone->ExtId;
 $link = "gantt?board=".$board;
 //echo $milestone->Progress;
+$barColor  = '#ffffff';
+$barWidth = 5;
+$barBgColor ='#dcdcdc';
+$initValue = 0;
+$radius = 10;
+$fontSize = 12;
 
 if($type=='progress')
 {
@@ -308,6 +314,11 @@ else if($type == 'tags')
   ?>
   <script>
 	//Intialiazation 
+	<?php if($type=='progress')
+		echo 'var showradialindicator = 1;';
+	?>
+	if(showradialindicator == 1)
+	{
 	var radialObj = radialIndicator('#indicatorContainer', {
     barColor : '<?php echo $barColor;  ?>',
     barWidth : <?php echo $barWidth;  ?>,
@@ -316,7 +327,8 @@ else if($type == 'tags')
     radius : <?php echo $radius;  ?>,
 	fontColor : '#000000',
 	fontSize : <?php echo $fontSize;  ?>,
-	}); 
+		});
+	}
 	//Using Instance
 	//radialObj.animate(30); 
   </script>

@@ -27,7 +27,7 @@
 |     Version: 1.0
 \------------------------------------------------------------------------------------------*/
 
-ECONode = function (id, pid, dsc, w, h, c, bc, target, meta, progress,status,deadline,end,delayed,issuetype) {
+ECONode = function (id, pid, dsc, w, h, c, bc, target, meta, progress,status,deadline,end,delayed,issuetype,estimateq) {
 	this.id = id;
 	this.pid = pid;
 	this.dsc = dsc;
@@ -41,6 +41,7 @@ ECONode = function (id, pid, dsc, w, h, c, bc, target, meta, progress,status,dea
 	this.end = end;
 	this.delayed = delayed;
 	this.issuetype = issuetype;
+	this.estimateq = estimateq;
 	this.target = target;
 	this.meta = meta;
 	
@@ -281,6 +282,8 @@ ECONode.prototype._drawChildrenLinks = function (tree) {
 
 ECOTree = function (obj, elm) {
 	this.config = {
+		canvaswidth : 2000,
+		canvasheight : 4000, 
 		iMaxDepth : 100,
 		iLevelSeparation : 40,
 		iSiblingSeparation : 40,
@@ -863,7 +866,12 @@ ECOTree.prototype._drawTree = function () {
 						else
 						{
 							var issuetype = node.issuetype.substring(0, 6);
-							s.push('<span style="font-size:8;">&nbsp&nbsp'+issuetype+'</span');
+							if(node.estimateq == -1)
+								s.push('<span style="font-size:8;color:red">&nbsp&nbsp'+issuetype+'</span');
+							else if(node.estimateq == 1)
+								s.push('<span style="font-size:8;color:green">&nbsp&nbsp'+issuetype+'</span');
+							else
+								s.push('<span style="font-size:8">&nbsp&nbsp'+issuetype+'</span');
 						}
 					}				
 					else
@@ -923,7 +931,8 @@ ECOTree.prototype.toString = function () {
 	switch (this.render)
 	{
 		case "CANVAS":
-			s.push('<canvas id="ECOTreecanvas" width=2000 height=4000></canvas>');
+			//console.log(this.config.canvaswidth);
+			s.push('<canvas id="ECOTreecanvas" width='+this.config.canvaswidth+' height='+this.config.canvasheight+'></canvas>');
 			break;
 			
 		case "HTML":
@@ -965,7 +974,7 @@ ECOTree.prototype.UpdateTree = function () {
 	}
 }
 
-ECOTree.prototype.add = function (target,meta, id, pid, dsc, w, h, c, bc,progress,status,deadline,end,delayed,issuetype) {	
+ECOTree.prototype.add = function (target,meta, id, pid, dsc, w, h, c, bc,progress,status,deadline,end,delayed,issuetype,estimateq) {	
 	var nw = w || this.config.defaultNodeWidth; //Width, height, colors, target and metadata defaults...
 	var nh = h || this.config.defaultNodeHeight;
 	var color = c || this.config.nodeColor;
@@ -989,7 +998,7 @@ ECOTree.prototype.add = function (target,meta, id, pid, dsc, w, h, c, bc,progres
 				}
 			}	
 		}
-	var node = new ECONode(id, pid, dsc, nw, nh, color, border, tg, metadata,progress,status,deadline,end,delayed,issuetype);	//New node creation...
+	var node = new ECONode(id, pid, dsc, nw, nh, color, border, tg, metadata,progress,status,deadline,end,delayed,issuetype,estimateq);	//New node creation...
 	node.nodeParent = pnode;  //Set it's parent
 	pnode.canCollapse = true; //It's obvious that now the parent can collapse	
 	var i = this.nDatabaseNodes.length;	//Save it in database

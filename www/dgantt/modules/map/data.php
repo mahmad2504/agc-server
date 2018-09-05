@@ -47,6 +47,15 @@ function ReadTaskData($task,$pid)
 	$obj->pid = $pid;
 	$obj->progress = $task->Progress;
 	$obj->status = $task->Status;
+	$obj->estimateq = 0;
+	if($task->Status == 'RESOLVED')
+	{
+		if($task->ActualTimeSpent > $task->ActualEffort)
+			$obj->estimateq = -1;
+		if($task->ActualTimeSpent < $task->ActualEffort)
+			$obj->estimateq = 1;
+		
+	}
 	if(strlen($task->Deadline)>0)
 		$obj->deadline = $task->Deadline;
 	else

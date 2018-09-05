@@ -19,6 +19,9 @@ require_once('backup.php');
 
 CreateZipFile(DATA_FOLDER,'projectbackup.zip');
 $status = copyr('projectbackup.zip', $BACKUPFOLDER.Date('Y-m-d').'.zip');
-echo "Backup created successfully";
+
+$msg = "Backup created successfully";
+LogMessage(INFO,'BACKUP',$msg);
+CallExit();
 
 ?>

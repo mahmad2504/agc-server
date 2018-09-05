@@ -454,3 +454,9 @@
     clear: both;
 }
 
+.copy {
+	font-family : "Verdana";				
+	font-size : 8px;
+	color : #CCCCCC;
+}
+

@@ -1,4 +1,11 @@
-<?php $data_url = "ui=0&board=".$board; ?>
+<?php $data_url = "ui=0&board=".$board;
+$canvaswidth = 2000; 
+$canvasheight = 4000; 
+if(isset($_GET['width']))
+	$canvaswidth = $_GET['width'];
+if(isset($_GET['height']))
+	$canvasheight = $_GET['height'];
+?>
 
 <html>
 	<head>
@@ -55,8 +62,9 @@ $(document).ready(function()
 					var deadline = array[i].deadline;
 					var issuetype =  array[i].issuetype;
 					var end = array[i].end;
+					var estimateq = array[i].estimateq
 					var delayed = array[i].delayed;
-					t.add(url,meta,id,pid,text,null,null,"#F08080",null,progress,status,deadline,end,delayed,issuetype);
+					t.add(url,meta,id,pid,text,null,null,"#F08080",null,progress,status,deadline,end,delayed,issuetype,estimateq);
 				}
 				//t.add('http://www.google.com','this is message 1-1',1,-1,'species',null,null,"#F08080");
 				t.UpdateTree();
@@ -69,6 +77,9 @@ function CreateTree()
 {
 	t = new ECOTree('t','map');						
 	//t.config.iRootOrientation = ECOTree.RO_LEFT;
+	
+	t.config.canvaswidth = <?php echo $canvaswidth;  ?>;
+	t.config.canvasheight = <?php echo $canvasheight;  ?>;
 	t.config.defaultNodeWidth = 112;
 	t.config.defaultNodeHeight = 20;
 	t.config.iSubtreeSeparation = 10;

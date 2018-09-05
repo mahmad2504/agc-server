@@ -1775,6 +1775,9 @@ class GanTask
 			case 'StartConstraintDate':
 				return $this->tstart;
 				return null;
+			case 'ActualTimeSpent':
+				return $this->timespent;
+				break;
 			case 'Timespent':
 				if($this->Status == 'RESOLVED')
 					return $this->Duration;

@@ -48,6 +48,11 @@ $milestone = new Analytics($board);
 	font-size:80%;
 	color: transparent; 
     }
+.copy {
+	font-family : "Verdana";				
+	font-size : 5px;
+	color : #CCCCCC;
+	}
 </style>
 <?php 
 // ?board=board1  Mandatory

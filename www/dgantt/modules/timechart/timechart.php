@@ -14,6 +14,11 @@
 				font-size: 13px;
 				padding: 0 0 50px 0;
 			}
+			.copy {
+				font-family : "Verdana";				
+				font-size : 10px;
+				color : #CCCCCC;
+			}
 			.contain {
 				width: 800px;
 				margin: 0 auto;
@@ -35,11 +40,9 @@
     </head>
     <body>
 		<div class="gantt"></div>
-		<br>
 		<center>
-			<div id="foot">Jira, OpenAir Integration By <br> Mumtaz_Ahmad@mentor.com</div>
-		</center>
-		</br>
+		<h4><span class="copy">Jira Integration - Mumtaz_Ahmad@mentor.com</span>
+		<center>
     </body>
 	<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<?php echo '<script src="'.TIMECHART_FOLDER.'/js/jquery.fn.gantt.js"></script>'; ?>

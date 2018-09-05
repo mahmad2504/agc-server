@@ -67,6 +67,8 @@ class History
 		$obj->IsTrakingDatesGiven = $task->IsTrakingDatesGiven;
 		$obj->Duration = $task->Duration;
 		$obj->IssueType = $task->IssueType;
+		$obj->ActualEffort = $task->ActualEffort;
+		$obj->ActualTimeSpent = $task->ActualTimeSpent;
 		//echo "------------------".$obj->IssueType.EOL;
 		if($task->ActualEffort>0)
 			$obj->Estimated=1;

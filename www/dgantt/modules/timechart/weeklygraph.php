@@ -41,11 +41,6 @@
     </head>
     <body>
 		<div id="chart_div"></div>
-		<br>
-		<center>
-			<div id="foot">Jira, OpenAir Integration By <br> Mumtaz_Ahmad@mentor.com</div>
-		</center>
-		</br>
     </body>
 	<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<?php echo '<script src="'.TIMECHART_FOLDER.'/js/jquery.fn.gantt.js"></script>'; ?>
