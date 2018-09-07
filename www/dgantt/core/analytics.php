@@ -699,8 +699,13 @@ class Analytics
 		}
 	}
 	
-	
-	function GetFullTimeSheet()
+	function GetVacations($username)
+	{
+		$resource = $this->gan->ResourcesObj->FindResource($username);
+		$vacations = $resource->Vacations;
+		return $vacations;
+	}
+	function GetFullTimeSheet($vacations=true)
 	{
 		//OpenAirName
 		global $board;
@@ -730,6 +735,28 @@ class Analytics
 		}
 		
 		$this->ProcessOpenAirWorklogs($selected_authors,$resources,$this->worklogs);
+		
+		// Add FTO
+		if($vacations)
+		{
+			foreach($this->worklogs as $author=>$types)
+			{
+				$vacations  = $this->GetVacations($author);
+				//echo $author.EOL;
+				//var_dump($vacations);
+				foreach($vacations as $vobj)
+				{
+					if(strtotime('today') >= strtotime($vobj->date))
+						$this->worklogs[$author]['Jira'][$vobj->date]['type']= $vobj->type;
+					else 
+					{
+						if(strtotime($vobj->date) < strtotime('+30 days',strtotime($this->GetToday('Y-m-d'))))
+							$this->worklogs[$author]['Jira'][$vobj->date]['type']= $vobj->type;
+					}
+					//echo $author." ".$vobj->date." ".$vobj->type.EOL;
+				}
+			}
+		}
 		return $this->worklogs;
 		
 	}

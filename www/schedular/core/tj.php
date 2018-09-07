@@ -84,8 +84,11 @@ class Tj
 			$calendar = $resource->Vacations;
 			$header = $header.'    resource '.$resource->Name.' "'.$resource->Name.'" {'."\n";
 			
-			foreach($calendar as $holiday)
+			foreach($calendar as $obj)
+			{
+				$holiday = $obj->date;
 				$header = $header.'      leaves annual '.$holiday."\n"; 
+			}
 			
 			$header = $header.'       efficiency '.$resource->Efficiency."\n"; 
 	

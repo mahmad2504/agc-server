@@ -74,9 +74,20 @@ switch(strtolower($cmd))
 	case 'backup':
 		require_once(DGANTTFOLDER.'/modules/'.$cmd.'/index.php');
 		break;
+	case 'timegraph':
+		$cmd = 'timechart';
+		if(!isset($_GET['openair']))
+			$_GET['openair'] = 1;
+		if(!isset($_GET['graph']))
+			$_GET['graph'] = 1;
+		
+		require_once(DGANTTFOLDER.'/modules/'.$cmd.'/index.php');
+		break;
 	case 'syncstatus':
 		$cmd = 'sync';
+		if(!isset($_GET['cached']))
 		$_GET['cached'] = 1;
+		if(!isset($_GET['token']))
 		$_GET['token'] = 1;
 		require_once(DGANTTFOLDER.'/modules/'.$cmd.'/index.php');
 		break;

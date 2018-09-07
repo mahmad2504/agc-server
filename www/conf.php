@@ -17,7 +17,7 @@ along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 
 $depth=0;
 $BASEFOLDER ="";
-$BACKUPFOLDER='u:/dgantt-backup/';
-$SCHD_SERVER = 'http://agcmaster/schedular';
+$BACKUPFOLDER='\\\\svr-pkl-net-01.pkl.mentorg.com\\home\\mahmad\\dgantt-backup\\';
+$SCHD_SERVER = 'http://localhost/schedular';
 define('DATA_FOLDER',"../../agc-data/"); // end backslash is must
 ?>

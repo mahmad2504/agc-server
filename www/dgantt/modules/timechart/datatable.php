@@ -30,6 +30,7 @@ include_once "Tmilos/GoogleCharts/DataTable/Column.php";
 include_once "Tmilos/GoogleCharts/DataTable/ColumnType.php";
 include_once "Tmilos/GoogleCharts/DataTable/Row.php";
 include_once "Tmilos/GoogleCharts/DataTable/Cell.php";
+$scale='none'; // So that json does not spit out any data automatically 
 include_once "json.php";
 
 use Tmilos\GoogleCharts\DataTable\Column;
@@ -76,67 +77,4 @@ $dataTable->addRows($rowdata);
 
 $json = json_encode($dataTable);//, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 echo $json;
-return;
-
-$data = array();
-$data["cols"] = array();
-$data["rows"] = array();
-
-$col =  new stdClass();
-$col->id = "";
-$col->label = "Topping";
-$col->pattern = ":";
-$col->type = "string";
-
-$data["cols"][] = $col;
-
-$col =  new stdClass();
-$col->id = "";
-$col->label = "Slices";
-$col->pattern = ":";
-$col->type = "number";
-$data["cols"][] = $col;
-
-$row =  new stdClass();
-$c = new stdClass();;
-$c->v = "Mushrooms";
-$c->f = null;
-$row->c[]=$c;
-
-$c = new stdClass();;
-$c->v = 3;
-$c->f = null;
-$row->c[]=$c;
-
-$data["rows"][] = $row;
-
-$row =  new stdClass();
-$c = new stdClass();;
-$c->v = "Onions";
-$c->f = null;
-$row->c[]=$c;
-
-$c = new stdClass();;
-$c->v = 1;
-$c->f = null;
-$row->c[]=$c;
-
-$data["rows"][] = $row;
-
-echo json_encode($data);
-return;
-
-//echo "<br>";
-
-
-
-
-
-
-
-$string = file_get_contents("sampleData.json");
-echo $string;
-
-// Instead you can query your database and parse into JSON etc etc
-
 ?>

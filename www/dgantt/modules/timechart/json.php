@@ -1,7 +1,4 @@
 <?php
-$scale = 'none';
-if(isset($_GET['scale']))
-	$scale = $_GET['scale'];
 
 /*
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
@@ -17,29 +14,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 */
-require_once(COMMON);
 
-
-if(!file_exists($GAN_FILE))
-{
-	echo "Multiple plans found. Mention plan in url explicitely".EOL;
-	$plans = ReadDirectory($project_folder);
-	foreach($plans as $plan)
-		echo $plan.EOL;
-	exit();
-}
-	
-if(strlen($board)==0)
-{
-	echo "Board not mentioned".EOL;
-	return;
-}
 
 $milestone = new Analytics($board,'Sat');
 $url = $milestone->gan->Jira->url;
+$worklogs_data =  null;
 
-$worklogs_data = $milestone->GetFullTimeSheet();
 
+if($vacations == 1)
+		$worklogs_data = $milestone->GetFullTimeSheet();
+
+if($worklogs_data == null)
+	$worklogs_data = $milestone->GetFullTimeSheet(false);
+	
 $data = GetWeeklyAccumlatedData($worklogs_data);
 $selected_weekdates= array();
 foreach($data as $date=>$obj)
@@ -71,6 +58,7 @@ foreach($worklogs_data as $user=>$type_data)
 	}
 }
 //var_dump($worklogs_data);
+
 if($scale=='days')
 {
 	$data = GetDailyData($worklogs_data);
@@ -101,6 +89,7 @@ function GetWeeklyAccumlatedData($worklogs_data)
 {
 	global $milestone ;
 	global $board;
+	global $openair;
 	$data = array();
 	
 	foreach($worklogs_data as $user=>$worklogs_list)
@@ -110,14 +99,24 @@ function GetWeeklyAccumlatedData($worklogs_data)
 			if($type == 'displayname')
 				continue;
 			
+			if($openair == 1)
+			{
+			}
+			else
+			{
+				if($type == 'Open Air')
+					continue;
+			}
 		         if($type=='Jira')
 				 $type = 'field1';
 			 else
 				$type = 'field2';
 
-			
 			foreach($worklogs as $date=>$worklog)
 			{
+				if($worklog == 'type')
+					continue;
+			
 				$weekdate = $milestone->GetEndWeekDate($date);
 				if(!array_key_exists($weekdate,$data))
 				{
@@ -127,8 +126,12 @@ function GetWeeklyAccumlatedData($worklogs_data)
 				if(!isset($data[$weekdate]->$type))
 					$data[$weekdate]->$type = 0;
 						
-				foreach($worklog as $log)
+				foreach($worklog as $index=>$log)
 				{
+					if(!is_integer($index))
+					{
+						continue;	
+					}	
 					$data[$weekdate]->$type += $log->timespent;
 				}
 			}
@@ -159,6 +162,7 @@ function GetEndMonthDate($date)
 function GetMonthlyData($worklogs_data)
 {
 	global $milestone ;
+	global $openair;
 	$data = array();
 	foreach($worklogs_data as $user=>$type)
 	{
@@ -171,6 +175,16 @@ function GetMonthlyData($worklogs_data)
 		{
 			if($type == 'displayname')
 				continue;
+			
+			if($openair == 1)
+			{
+			}
+			else
+			{
+				if($type == 'Open Air')
+					continue;
+			}
+			
 			$obj = new Obj();
 			if($user != "")
 			{
@@ -202,18 +216,22 @@ function GetMonthlyData($worklogs_data)
 				{}
 				else
 					$monthly_worklogs[$monthdate] =  array();
-				foreach($worklog as $log)
+				foreach($worklog as $index=>$log)
 				{	
+					if(!is_integer($index))
+					{
+
+						continue;	
+					}	
+	
 					$log->started = $monthdate;
 					$monthly_worklogs[$monthdate][] = $log;
 					//echo $log->timespent.EOL;
 				}
 			}
+			//var_dump($monthly_worklogs);
 			foreach($monthly_worklogs as $date=>$worklog)
 			{
-				//echo $date.EOL;
-				//if( count($worklog) > 1)
-				//	echo "dddd".EOL;
 				$value = new Obj();
 				$dataObj = new Obj();
 				$dataObj->url = null;
@@ -221,8 +239,13 @@ function GetMonthlyData($worklogs_data)
 				$dataObj->requested = 0;
 				$nonbillable = 0;
 				$na=0;
-				foreach($worklog as $log)
+				foreach($worklog as $index=>$log)
 				{				
+					if(!is_integer($index))
+					{
+		
+						continue;	
+					}				
 					if($log->approved == 0)
 					{
 						$dataObj->requested = 1;
@@ -281,6 +304,7 @@ function GetMonthlyData($worklogs_data)
 function GetWeeklyData($worklogs_data)
 {
 	global $milestone ;
+	global $openair;
 	$data = array();
 	foreach($worklogs_data as $user=>$type)
 	{
@@ -290,6 +314,16 @@ function GetWeeklyData($worklogs_data)
 		{
 			if($type == 'displayname')
 				continue;
+			
+			if($openair == 1)
+			{
+			}
+			else
+			{
+				if($type == 'Open Air')
+					continue;
+			}
+			
 			$obj = new Obj();
 			if($user != "")
 			{
@@ -315,22 +349,26 @@ function GetWeeklyData($worklogs_data)
 			$weekly_worklogs = array();
 			foreach($worklogs as $date=>$worklog)
 			{
+				
 				$weekdate = $milestone->GetEndWeekDate($date);
 				if(array_key_exists($weekdate,$weekly_worklogs))
 				{}
 				else
 					$weekly_worklogs[$weekdate] =  array();
-				foreach($worklog as $log)
+				foreach($worklog as $index=>$log)
 				{	
+					//echo $weekdate.EOL;
+					//var_dump($log);
+					if(!is_integer($index))
+						continue;
+				
 					$log->started = $weekdate;
 					$weekly_worklogs[$weekdate][] = $log;
 				}
 			}
+			//var_dump($weekly_worklogs);
 			foreach($weekly_worklogs as $date=>$worklog)
 			{
-				//echo $date.EOL;
-				//if( count($worklog) > 1)
-				//	echo "dddd".EOL;
 				$value = new Obj();
 				$dataObj = new Obj();
 				$dataObj->url = null;
@@ -338,8 +376,13 @@ function GetWeeklyData($worklogs_data)
 				$dataObj->requested = 0;
 				$nonbillable = 0;
 				$na = 0;
-				foreach($worklog as $log)
+				foreach($worklog as $index=>$log)
 				{				
+					if(!is_integer($index))
+					{
+						continue;	
+					}
+					
 					if($log->approved == 0)
 					{
 						$dataObj->requested = 1;
@@ -398,14 +441,28 @@ function GetWeeklyData($worklogs_data)
 
 function GetDailyData($worklogs_data)
 {
+	global $milestone;
+	global $openair ;
 	$data = array();
 	foreach($worklogs_data as $user=>$type)
 	{
 	$username = $user;
+		
 	foreach($type  as $type=>$worklogs)
 	{
+			
 		if($type == 'displayname')
 			continue;
+			
+			if($openair == 1)
+			{
+			}
+			else
+			{
+				if($type == 'Open Air')
+					continue;
+			}
+			
 		$obj = new Obj();
 		if($user != "")
 		{
@@ -430,16 +487,20 @@ function GetDailyData($worklogs_data)
 		}
 		foreach($worklogs as $date=>$worklog)
 		{
-			//echo $date.EOL;
-			//if( count($worklog) > 1)
-			//	echo "dddd".EOL;
 			$value = new Obj();
 			$dataObj = new Obj();
 			$dataObj->url = null;
 			$timespent = 0.0;
 			$dataObj->requested = 0;
-			foreach($worklog as $log)
+				$vacationtype = 'none';
+				foreach($worklog as $index=>$log)
 			{				
+				    //var_dump($log);
+					if(!is_integer($index))
+					{
+						$vacationtype = $log;
+						continue;	
+					}
 				if($log->approved == 0)
 				{
 					$dataObj->requested = 1;
@@ -477,20 +538,28 @@ function GetDailyData($worklogs_data)
 					if($log->nonbillable==1)
 						$value->customClass = "ganttYellow";
 				}
-				
 				if(isset($log->na))
 				{
 					$value->customClass = "ganttTransparent";
 				}
+				if($vacationtype  == 'fto')
+				{
+					if($value->label=="0")
+						$value->label = "L";
+					$value->customClass = "ganttGrey";
+				}
 				
+				if($vacationtype  == 'holiday')
+				{
+					if($value->label=="0")
+						$value->label = "H";
+					$value->customClass = "ganttGrey";
+				}
 			$obj->values[] = $value;
-			//echo $timespent.EOL;
 		}
 		$data[] = $obj;
 	}
 	}	
 	return $data;
 }
-
-
 ?>

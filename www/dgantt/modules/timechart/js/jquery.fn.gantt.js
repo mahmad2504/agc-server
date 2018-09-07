@@ -789,6 +789,18 @@
             // **Navigation**
             navigation: function (element) {
                 var ganttNavigate = null;
+		var openair_check = "unchecked"
+		if(settings.openair == 1)
+			openair_check = "checked";
+		var vacations_check = "unchecked"
+		if(settings.vacations == 1)
+			vacations_check = "checked";
+		var vacation_hidden = 'hidden';
+		if(settings.scale == 'days')
+			vacation_hidden = ''
+				
+		//console.log(vacations_check);
+		//console.log(openair_check);
                 // Scrolling navigation is provided by setting
                 // `settings.navigate='scroll'`
                 if (settings.navigate === "scroll") {
@@ -894,7 +906,17 @@
                                     .click(function () {
                                         core.zoomInOut(element, 1);
                                     }))
+				.append($('<input type="checkbox" id="openair"  '+openair_check+'>&nbspOpen Air&nbsp</input>')
+                                    .click(function () {
+                                        core.showHolidays(element, 1);
+                                    }))	
+				.append($('<span '+vacation_hidden+'><input type="checkbox" id="vacations" '+vacations_check+'>&nbspVacations</input></span>')
+                                    .click(function () {
+                                        core.showHolidays(element, 1);
+                                    }))
                                     )
+							.append($('<center><div class="copy">&copy;2018-19 Mumtaz_Ahmad@mentor.com</center>')
+											)
                                 );
                     $(document).mouseup(function () {
                         element.scrollNavigation.scrollerMouseDown = false;
@@ -1263,7 +1285,26 @@
                     });
                 }
             },
-
+	showHolidays : function (element, val) {
+		var openair = 0;
+		var vacations  = 0;
+						
+		if(document.getElementById("openair").checked)
+			openair = 1;
+						
+		if(document.getElementById("vacations").checked)
+			vacations = 1;
+						
+		if(vacations == 1)
+			settings.scale = 'days';
+						
+		settings.openair = openair;
+	        settings.vacations = vacations;
+$.getJSON("timechart?board="+settings.board+"&data=1&vacations="+vacations+"&scale=days&openair="+openair, function (jsData) {
+                        element.data = jsData;
+                        core.init(element);
+                    });
+			},
             // Change zoom level
             zoomInOut: function (element, val) {
                 core.waitToggle(element, true, function () {
@@ -1318,7 +1359,23 @@
                         // reset scrollPos
                         $.cookie(this.cookieKey + "ScrollPos", null);
                     }
-		        $.getJSON("timechart?board="+settings.board+"&data=1&scale="+settings.scale, function (jsData) {
+					
+		var openair = 0;
+		var vacations  = 0;
+					
+		if(document.getElementById("openair").checked)
+			openair = 1;
+					
+		if(document.getElementById("vacations").checked)
+			vacations = 1;
+					
+		if(settings.scale != 'days')
+			vacations = 0;
+					
+		//settings.scale = 'days';
+		settings.openair = openair;
+		settings.vacations = vacations;
+$.getJSON("timechart?board="+settings.board+"&data=1&vacations="+vacations+"&scale="+settings.scale+"&openair="+openair, function (jsData) {
                         element.data = jsData;
                         core.init(element);
                     });

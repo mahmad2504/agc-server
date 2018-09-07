@@ -943,7 +943,7 @@ class GanResource
 				$this->tasks[$value->Id] = $value;
 				break;
 			case 'Vacation':
-				$this->vacations[$value] = $value;
+				$this->vacations[$value->date] = $value;
 				break;
 			case 'Email':
 				$this->email = $value;
@@ -1006,7 +1006,7 @@ class GanResource
 		$str = $this->id." ".$this->name;
 		foreach($this->vacations as $vacation)
 		{
-			$str = $str." ".$vacation;
+			$str = $str." ".$vacation->date;
 		}
 		return $str;
 	}
@@ -1016,7 +1016,8 @@ class GanResources
 {
 	private $list=array();
 	private $doc;
-	function ReadUserCalender($resource)
+	private $project;
+	function ReadUserCalender($project,$resource)
 	{
 		global $GAN_FILE;
 		$data = array();
@@ -1037,7 +1038,8 @@ class GanResources
 					{
 						$sdate = strtotime($range[0]);
 						$edate = strtotime($range[1]);
-						if( ($sdate >= strtotime('today'))||($edate >= strtotime('today') ))
+						//if( ($sdate >= strtotime('today'))||($edate >= strtotime('today') ))
+						if( ($sdate >= strtotime($project->Start)) && ($sdate <= strtotime($project->End) ))
 						{
 							$sdate = date('Y-m-d', $sdate);
 							$edate = date('Y-m-d', $edate);
@@ -1050,7 +1052,8 @@ class GanResources
 					else
 					{
 				$hdate = strtotime($hdate);
-				if($hdate >= strtotime('today'))
+						if( ($hdate >= strtotime($project->Start)) && ($hdate <= strtotime($project->End) ))
+						//if($hdate >= strtotime('today'))
 				{
 							$edate = date('Y-m-d', $hdate);
 							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
@@ -1066,7 +1069,7 @@ class GanResources
 		} 
 		return $data;
 	}
-	function ReadCountryCalender($resource,$calender_code)
+	function ReadCountryCalender($project,$resource,$calender_code)
 	{
 		global $configuration_folder;
 		global $GAN_FILE;
@@ -1095,7 +1098,8 @@ class GanResources
 					{
 						$sdate = strtotime($range[0]);
 						$edate = strtotime($range[1]);
-						if( ($sdate >= strtotime('today'))||($edate >= strtotime('today') ))
+						if( ($sdate >= strtotime($project->Start)) && ($sdate <= strtotime($project->End) ))
+						//if( ($sdate >= strtotime('today'))||($edate >= strtotime('today') ))
 						{
 							$sdate = date('Y-m-d', $sdate);
 							$edate = date('Y-m-d', $edate);
@@ -1108,7 +1112,8 @@ class GanResources
 					else
 					{
 				$hdate = strtotime($hdate);
-				if($hdate >= strtotime('today'))
+						if( ($hdate >= strtotime($project->Start)) && ($hdate <= strtotime($project->End) ))
+						//if($hdate >= strtotime('today'))
 				{
 							$edate = date('Y-m-d', $hdate);
 							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
@@ -1129,9 +1134,10 @@ class GanResources
 		}
 		return $data;
 	}
-	function __construct($doc)
+	function __construct($project,$doc)
 	{
 		$this->doc =  $doc;
+		$this->project = $project;
 		$xpath = new DOMXPath($doc);
 		
 		$efficiencyid = null;
@@ -1164,27 +1170,33 @@ class GanResources
 		{
 			$resource = new GanResource($doc,$record,$efficiencyid,$groupid,$this,$openairid,$calendarid);
 			$this->list[$resource->Id] = $resource; 
-			$ccalender = $this->ReadUserCalender($resource);
+			$ccalender = $this->ReadUserCalender($this->project,$resource);
 			foreach($ccalender as $start=>$end)
 			{
 				$interval = DateInterval::createFromDateString('1 day');
 				$daterange = new DatePeriod( new DateTime($start), $interval, new DateTime($end));
 				foreach($daterange as $date)
 				{
-					$this->list[$resource->Id]->Vacation = $date->format("Y-m-d");
+					$obj = new Obj();
+					$obj->date = $date->format("Y-m-d");
+					$obj->type = 'fto'; 
+					$this->list[$resource->Id]->Vacation = $obj;
 				}
 			}
 			
 			if($this->list[$resource->Id]->CalendarCode != null)
 			{
-				$ccalender = $this->ReadCountryCalender($this->list[$resource->Id],$this->list[$resource->Id]->CalendarCode);
+				$ccalender = $this->ReadCountryCalender($this->project,$this->list[$resource->Id],$this->list[$resource->Id]->CalendarCode);
 				foreach($ccalender as $start=>$end)
 				{
 					$interval = DateInterval::createFromDateString('1 day');
 					$daterange = new DatePeriod( new DateTime($start), $interval, new DateTime($end));
 					foreach($daterange as $date)
 					{
-						$this->list[$resource->Id]->Vacation = $date->format("Y-m-d");
+						$obj = new Obj();
+						$obj->date = $date->format("Y-m-d");
+						$obj->type = 'holiday'; 
+						$this->list[$resource->Id]->Vacation = $obj;
 					}
 				}
 			}
@@ -1201,9 +1213,13 @@ class GanResources
 			
 			foreach($daterange as $date)
 			{
-				$this->list[$resourceid]->Vacation = $date->format("Y-m-d");
+				$obj = new Obj();
+				$obj->date = $date->format("Y-m-d");
+				$obj->type = 'fto'; 
+				$this->list[$resourceid]->Vacation = $obj;
 			}
 		}
+		//var_dump($this->list[$resource->Id]->Vacations);
 	}
 	public function FindResource($name)
 	{
@@ -2263,7 +2279,7 @@ class Gan
 		$this->calendar = new GanCalendar($this->doc);
 		$this->cproperties =  new CustomProperties($this->doc);
 		$this->tasks = new GanTasks($this->doc,$this->cproperties,$this->project->Jira,$rebuild,$this->project);
-		$this->resources =  new GanResources($this->doc);
+		$this->resources =  new GanResources($this->project,$this->doc);
 		$this->allocations =  new GanAllocations($this->doc);
 		$this->AssignResource();
 	}
@@ -2440,6 +2456,9 @@ class Gan
 				break;
 			case 'Holidays':
 				return $this->calendar->Holidays;
+				break;
+			case 'ResourcesObj':
+				return $this->resources;
 				break;
 			case 'Resources':
 				return $this->resources->List;
@@ -2629,8 +2648,9 @@ class Gan
 				$vacations = $resource->Vacations;
 				$del = "";
 				$str = ""; 
-				foreach($vacations as $date)
+				foreach($vacations as $obj)
 				{
+					$date = $obj->date;
 					$str .= $del.$date;
 					$del = ",";
 				}

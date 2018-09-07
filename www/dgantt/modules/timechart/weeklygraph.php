@@ -59,7 +59,7 @@
 	  function drawChart() {
       var jsonData = $.ajax({
 		  <?php
-		  $url = "timechart?datatable=1&board=".$board;
+		  $url = "timechart?datatable=1&board=".$board."&openair=".$openair;
 		  ?>
           url: "<?php echo $url; ?>",
           dataType: "json",

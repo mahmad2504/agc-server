@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en-au">
     <head>
@@ -40,9 +39,6 @@
     </head>
     <body>
 		<div class="gantt"></div>
-		<center>
-		<h4><span class="copy">Jira Integration - Mumtaz_Ahmad@mentor.com</span>
-		<center>
     </body>
 	<script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
 	<?php echo '<script src="'.TIMECHART_FOLDER.'/js/jquery.fn.gantt.js"></script>'; ?>
@@ -51,15 +47,18 @@
 	<?php echo '<script src="'.TIMECHART_FOLDER.'/js/prettify.js"></script>'; ?>
 
     <script>
-		
+		//console.log("<?php echo $openair; ?>");
+		//console.log("<?php echo $vacations; ?>");
 		$(function() {
 
 			"use strict";
 			$(".gantt").gantt({
-				source: <?php echo '"'.$cmd.'?board='.$board.'&data=1&scale=days"';?>,
+				source: <?php echo '"'.$cmd.'?board='.$board.'&data=1&scale=days&vacations='.$vacations.'&openair='.$openair.'"';?>,
 				navigate: "scroll",
 				board: "<?php echo $board;?>",
 				scale: "days",
+				openair: "<?php echo $openair; ?>",
+				vacations: "<?php echo $vacations; ?>",
 				maxScale: "months",
 				minScale: "days",
 				itemsPerPage: 50,
@@ -80,7 +79,7 @@
 				},
 				onRender: function() {
 					if (window.console && typeof console.log === "function") {
-						console.log("chart rendered");
+						//console.log("chart rendered");
 					}
 				}
 			});
@@ -100,6 +99,5 @@
 			prettyPrint();
 
 		});
-
     </script>
 </html>
