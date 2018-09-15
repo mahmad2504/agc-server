@@ -137,7 +137,11 @@
 	  var options = {
       title : 'Time Logs History',
       vAxis: {title: 'Hours'},
-      hAxis: {title: xtitle},
+      hAxis: {title: xtitle,
+		      textStyle : {
+                 fontSize: 7 // or the number you want
+             }
+	         },
 	  bar: {groupWidth: groupwidth+"%"},
 	  width: length*50>(window.screen.width-200)?(window.screen.width-200):length*50,
 	  height: 240,

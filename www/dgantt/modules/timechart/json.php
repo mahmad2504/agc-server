@@ -26,7 +26,7 @@ if($vacations == 1)
 
 if($worklogs_data == null)
 	$worklogs_data = $milestone->GetFullTimeSheet(false);
-	
+
 $data = GetWeeklyAccumlatedData($worklogs_data);
 $selected_weekdates= array();
 foreach($data as $date=>$obj)
@@ -328,7 +328,7 @@ function GetMonthlyData($worklogs_data)
 					}
 					//echo $log->timespent.EOL;
 				}
-				
+				//$timespent = truncate_number($timespent,1);
 				$value->dataObj = null;
 				if(count($dataObj->url)>0)
 					$value->dataObj = json_encode($dataObj);
@@ -337,7 +337,7 @@ function GetMonthlyData($worklogs_data)
 				$value->to = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
 				
 				$value->label = $timespent*8;
-				$value->label = round($value->label);
+				$value->label = truncate_number($value->label,1);
 				if($value->label == 0)
 					$value->label = "0";
 				
@@ -474,6 +474,7 @@ function GetWeeklyData($worklogs_data)
 				$value->to = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
 				
 				$value->label = $timespent*8;
+				$value->label = truncate_number($value->label,1);
 				if($value->label == 0)
 					$value->label = "0";
 				
@@ -500,7 +501,20 @@ function GetWeeklyData($worklogs_data)
 	}	
 	return $data;
 }
-
+function truncate_number( $number, $precision = 2) {
+    // Zero causes issues, and no need to truncate
+    if ( 0 == (int)$number ) {
+        return $number;
+    }
+    // Are we negative?
+    $negative = $number / abs($number);
+    // Cast the number to a positive to solve rounding
+    $number = abs($number);
+    // Calculate precision number for dividing / multiplying
+    $precision = pow(10, $precision);
+    // Run the math, re-applying the negative value to ensure returns correctly negative / positive
+    return floor( $number * $precision ) / $precision * $negative;
+}
 
 function GetDailyData($worklogs_data)
 {
@@ -578,6 +592,8 @@ function GetDailyData($worklogs_data)
 				}
 				//echo $log->timespent.EOL;
 			}
+				
+				//$timespent = truncate_number($timespent,1);
 			$value->dataObj = null;
 			if(count($dataObj->url)>0)
 				$value->dataObj = json_encode($dataObj);
@@ -586,6 +602,7 @@ function GetDailyData($worklogs_data)
 				$value->from = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
 				$value->to = "/Date(".strtotime('+1 day',strtotime($date))."000)/";
 			$value->label = $timespent*8;
+				$value->label = truncate_number($value->label,1);
 			if($value->label == 0)
 				$value->label = "0";
 			

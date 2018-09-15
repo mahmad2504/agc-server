@@ -81,15 +81,16 @@ foreach($data as $date=>$obj)
 	}
 	else
 	{
+		$year = $date->format("y");
 	$week = $date->format("W");
-	$row[] = (String)$week;
+		$row[] = $week."/".$year;
 	}
 	if(isset($obj->field1))
-	$row[] =  $obj->field1*8;
+		$row[] =  truncate_number($obj->field1*8,1);
 	else
 		$row[] = 0;
 	if(isset($obj->field2))
-		$row[] =  $obj->field2*8;
+		$row[] =  truncate_number($obj->field2*8,1);
 	else
 		$row[] = 0 ;
 	$row[] = $row[1];

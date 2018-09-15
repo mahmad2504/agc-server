@@ -1,3 +1,9 @@
+<?php
+if($scale == 'none')
+	$scale = 'days';
+
+?>
+
 <!doctype html>
 <html lang="en-au">
     <head>
@@ -53,10 +59,10 @@
 
 			"use strict";
 			$(".gantt").gantt({
-				source: <?php echo '"'.$cmd.'?board='.$board.'&data=1&scale=days&vacations='.$vacations.'&openair='.$openair.'"';?>,
+				source: <?php echo '"'.$cmd.'?board='.$board.'&data=1&scale='.$scale.'&vacations='.$vacations.'&openair='.$openair.'"';?>,
 				navigate: "scroll",
 				board: "<?php echo $board;?>",
-				scale: "days",
+				scale: "<?php echo $scale;?>",
 				openair: "<?php echo $openair; ?>",
 				vacations: "<?php echo $vacations; ?>",
 				maxScale: "months",
