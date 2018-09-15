@@ -17,7 +17,7 @@ function DoBackup()
 		}
 	});
 }
-function LoadUrl(obj)
+function LoadUrl(obj,message)
 {
 	var id=current;
 	var divid  = 'div'+id;
@@ -41,7 +41,7 @@ function LoadUrl(obj)
 		param_message = "Cached";
 	
 	var param = "ui="+ui+"&rebuild="+rebuild+"&oa="+oa+"&cached="+cached+"&board="+board;
-	
+	$('#'+divid).remove();
 	$('#data').append('<div id="'+divid+'" class="container">');
 	$('#'+divid).append('<div class="fixed">'+company+'/'+project+'/'+subproject+'</div>');
 	$('#'+divid).append('<div id="param_div'+current+'" class="fixed2">'+param_message+'</div>');
@@ -55,7 +55,7 @@ function LoadUrl(obj)
 	
 	//$('#data').append('<div id="label'+id+'">'+(current+1)+" "+url+'</div>');
 	//$('#label'+id).append('<div id="error'+id+'"></div>');
-	$('#'+status_divid).append('<span>Loading...</span>');
+	$('#'+status_divid).append('<span>'+message+'</span>');
 	//console.log(url);
 	$.ajax(
 	{     
@@ -87,6 +87,13 @@ function LoadUrl(obj)
 					//console.log(obj.TAG[i].message);
 					$('#param_div'+identity).append('<br>');
 					$('#param_div'+identity).append('<span style="font-size:50%">'+obj.TAG[i].message+'</span>');
+				}
+				if(tag == 'retry')
+				{
+					$("#image").remove();
+					$("#data").css("visibility", "visible");
+					LoadUrl(urldata[current],obj.TAG[i].message);
+					return;
 				}
 			}		
 			
@@ -231,7 +238,7 @@ function LoadUrl(obj)
 			if((warn_count == 0)&&(error_count == 0))
 				$('#'+status_divid).append('<span>&nbsp&nbspSuccess</span>');
 			
-				
+			current++;
 			if(current >= count)
 			{
 				current=0;
@@ -242,11 +249,10 @@ function LoadUrl(obj)
 			}
 			else
 			{
-				LoadUrl(urldata[current]);
+				LoadUrl(urldata[current],"Syncing...");
 			}
 			//Alert(data);
 			//console.log(data);
 		}
 	});
-	current++;
 }

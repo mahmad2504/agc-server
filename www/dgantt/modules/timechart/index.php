@@ -2,14 +2,8 @@
 	require_once(COMMON);
 	require_once("params.php");
 	
-	if(!file_exists($GAN_FILE))
-	{
-		echo "Project Does Not Exist".EOL;
-		//$plans = ReadDirectory($project_folder);
-		//foreach($plans as $plan)
-		//	echo $plan.EOL;
-		exit();
-	}
+	DefaultCheck();
+	
 	if(strlen($board)==0)
 	{
 		echo "Board not mentioned".EOL;
@@ -37,7 +31,7 @@
 			}
 		if($graph==1)
 					{
-			require_once('weeklygraph.php');
+		require_once('graph.php');
 			return;
 				}
 	else

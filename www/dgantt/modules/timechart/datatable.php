@@ -39,14 +39,31 @@ use Tmilos\GoogleCharts\DataTable\DataTable;
 use Tmilos\GoogleCharts\DataTable\Row;
 use Tmilos\Value\AbstractEnum;
 
-$dataTable = new DataTable([
-    Column::create(ColumnType::STRING())->setLabel('Weeks'),
+if($type == 'monthly')
+	$label = 'Months';
+else
+	$label = 'Weeks';
+
+if($openair == 1)
+{
+	$dataTable = new DataTable([
+		Column::create(ColumnType::STRING())->setLabel($label),
     Column::create(ColumnType::NUMBER())->setLabel('Jira'),
 	Column::create(ColumnType::NUMBER())->setLabel('OA'),
-	Column::create(ColumnType::NUMBER())->setLabel(''),
-]);
+	]);
+}
+else
+{
+	$dataTable = new DataTable([
+		Column::create(ColumnType::STRING())->setLabel($label),
+		Column::create(ColumnType::NUMBER())->setLabel('Jira'),
+	]);
+}
 
-$data = GetWeeklyAccumlatedData($worklogs_data);
+if($type == 'monthly')
+	$data = GetMonthlyAccumlatedData($worklogs_data);
+else
+	$data = GetWeeklyAccumlatedData($worklogs_data);
 
 
 $rowdata =  array();
@@ -56,9 +73,17 @@ foreach($data as $date=>$obj)
 
 	$row = array();
 	$date = new DateTime($date);
+	if($type == 'monthly')
+	{
+		$month = $date->format("n");
+		$year = $date->format("y");
+		$row[] = $month."/".$year;
+	}
+	else
+	{
 	$week = $date->format("W");
 	$row[] = (String)$week;
-	
+	}
 	if(isset($obj->field1))
 	$row[] =  $obj->field1*8;
 	else

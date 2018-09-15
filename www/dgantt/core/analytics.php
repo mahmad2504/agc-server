@@ -702,6 +702,9 @@ class Analytics
 	function GetVacations($username)
 	{
 		$resource = $this->gan->ResourcesObj->FindResource($username);
+		if($resource == null)
+			return array();
+		
 		$vacations = $resource->Vacations;
 		return $vacations;
 	}

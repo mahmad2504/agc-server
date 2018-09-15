@@ -30,10 +30,11 @@ $organization_folder = DATA_FOLDER."/data/".$organization;
 
 $configuration_folder = $organization_folder."/configuration/"; // end backslash must
 $project_folder = $organization_folder."/".$project_name;
+$plan_folder_path = $project_folder."/".$subplan;
 $gan_folder = DATA_FOLDER."/projects/".$organization."/".$project_name;
 
-define('OPENAIR_DATA_FILENAME',$project_folder."/".$project_name.'/openair');
-
+define('OPENAIR_DATA_FILENAME',$project_folder."/".$subplan.'/openair');
+define('QUERY_COUNT_FILENAME',$project_folder."/".$subplan.'/querycount');
 
 
 require_once('globals.php');
@@ -268,5 +269,34 @@ function ReadFiles($directory,$filter)
 		//natsort($files); // sort.
 	}
 	return $files;
+}
+function DefaultCheck()
+{
+	global $GAN_FILE;
+	global $project_name;
+	global $plan_folder_path;
+	global $subplan;
+	global $cmd;
+	global $ui;
+	
+	if($ui==1) // We relax check if command is coming for ui as ui will validate 
+	{
+		if($cmd == 'sync')
+			if($subplan == 'none')
+				return;
+	}
+	// if ui=0 which means command line then do the thourough check
+	if(!file_exists($GAN_FILE))
+	{
+		$msg = "Plan '".$subplan."' Does not exist";
+		LogMessage(CRITICALERROR,'SYNC',$msg);
+		CallExit();
+	}
+	if(!file_exists($plan_folder_path))
+	{
+		$msg = "Plan '".$subplan."' Does not exist";
+		LogMessage(CRITICALERROR,'SYNC',$msg);
+		CallExit();
+	}
 }
 ?>

@@ -83,7 +83,73 @@ else
 	//var_dump($data);
 }
 
+function GetMonthlyAccumlatedData($worklogs_data)
+{
+	global $milestone ;
+	global $board;
+	global $openair;
+	$data = array();
+	
+	foreach($worklogs_data as $user=>$worklogs_list)
+	{
+		foreach($worklogs_list as $type=>$worklogs)
+		{
+			if($type == 'displayname')
+				continue;
+			
+			if($openair == 1)
+			{
+			}
+			else
+			{
+				if($type == 'Open Air')
+					continue;
+			}
+		     if($type=='Jira')
+				 $type = 'field1';
+			 else
+				$type = 'field2';
 
+			foreach($worklogs as $date=>$worklog)
+			{
+				$monthdate = GetEndMonthDate($date);
+				//echo $monthdate.EOL;
+				if(!array_key_exists($monthdate,$data))
+				{
+					$data[$monthdate] = new Obj();
+					$data[$monthdate]->$type = 0;
+				}
+				if(!isset($data[$monthdate]->$type))
+					$data[$monthdate]->$type = 0;
+						
+				foreach($worklog as $index=>$log)
+				{
+					if(!is_integer($index))
+					{
+						continue;	
+					}	
+					$data[$monthdate]->$type += $log->timespent;
+				}
+			}
+		}
+	}
+
+	//foreach($data as $type=>&$worklogs_array)
+	ksort($data);//SORT_NUMERIC($data,"cmp3");
+	
+	// Remove openair logs  if there is some sub board and Jira logs are absent 
+	foreach($data as $date=>$obj)
+	{
+		if($board != 'project')
+		{
+			if(! isset($obj->field1))
+				$obj->field2 = 0;
+		}
+	}
+	//var_dump($data);
+		
+	return $data;
+}
 
 function GetWeeklyAccumlatedData($worklogs_data)
 {
@@ -114,9 +180,6 @@ function GetWeeklyAccumlatedData($worklogs_data)
 
 			foreach($worklogs as $date=>$worklog)
 			{
-				if($worklog == 'type')
-					continue;
-			
 				$weekdate = $milestone->GetEndWeekDate($date);
 				if(!array_key_exists($weekdate,$data))
 				{

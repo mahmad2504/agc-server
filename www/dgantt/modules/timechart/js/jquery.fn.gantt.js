@@ -1300,7 +1300,7 @@
 						
 		settings.openair = openair;
 	        settings.vacations = vacations;
-$.getJSON("timechart?board="+settings.board+"&data=1&vacations="+vacations+"&scale=days&openair="+openair, function (jsData) {
+$.getJSON("timechart?board="+settings.board+"&data=1&vacations="+vacations+"&scale="+settings.scale+"&openair="+openair, function (jsData) {
                         element.data = jsData;
                         core.init(element);
                     });

@@ -184,6 +184,9 @@ class History
 	private function ReadDirectory($directory)
 	{
 		$files = array();
+		if(!file_exists($directory))
+			mkdir($directory);
+		
 		$dir = opendir($directory); // open the cwd..also do an err check.
 		//echo $directory.EOL;
 		while(false != ($file = readdir($dir))) 
@@ -275,7 +278,8 @@ class History
 		}
 		if(count($returndata)==0)
 		{
-			echo "Board not found".EOL;
+			LogMessage(WARNING,__CLASS__,'Board Not Found');
+			//echo "Board not found".EOL;
 		}
 		return $returndata;
 	}
@@ -287,7 +291,8 @@ class History
 		$files = $this->ReadDirectory($this->folder);
 		if(count($files) == 0)
 		{
-			echo "History Data Not Found".EOL;
+			LogMessage(WARNING,__CLASS__,"History Data Not Found");
+			//echo "History Data Not Found".EOL;
 			return $returndata;
 		}
 	//echo count($files);

@@ -510,12 +510,10 @@ class Sync
 	}
 	function ValidateStructure($query)
 	{
-		//echo $query->jql.EOL;
 		$baselevel = $query->Task->Level;
 		foreach($query->rows as $row)
 		{
 			$rowtid = $row->taskid;
-	
 			foreach($query->Jiratasks as $key=>$jtask)
 			{
 				//echo $key.EOL;
@@ -561,10 +559,30 @@ class Sync
 		//return;
 		
 		$jtasksa = array();
+		$time1 = strtotime('now');
+		$i=0;
+		$forcecached = 0;
+		$j=0;
+		if(file_exists(QUERY_COUNT_FILENAME))
+		{
+			$j = file_get_contents(QUERY_COUNT_FILENAME);
+		}
+		$nqueries = count($queries);
 		foreach($queries as $query)
 		{
 			//echo "------------".$query->Task->Name.EOL;
-			$query->Run();
+			if($i < $j)
+			{
+				$query->Run(1);// Pick cached
+			}
+			else
+			{
+				$query->Run($forcecached);
+			}
+			
+			$time2 = strtotime('now');
+			$diff = $time2 - $time1;
+			
 			$t= $query->Jiratasks;
 			if($t != null)
 			{
@@ -582,7 +600,35 @@ class Sync
 			//{
 			//	$jtask->handled = false;
 			//}
+			$i++;
+			if($diff > 30)
+			{
+				if($forcecached==0)
+				{
+					$percent = $i/$nqueries*100;
+					$percent = round($percent,0);
+					if($percent < 100)
+					{
+					file_put_contents(QUERY_COUNT_FILENAME,$i);
+						//$msg = "Partially Rebuilt [".$j."-".$i."] ".$percent."% completed";
+						$msg = $percent."% completed";
+						LogMessage(ERROR,__CLASS__,$msg);
+						TagLogs('retry',$msg);
+					$forcecached = 1;
+				}
+			}
+			}
+			//	exit();
+			//}
+			
 		}
+		if($forcecached == 0)
+		{
+			if(file_exists(QUERY_COUNT_FILENAME))
+				unlink(QUERY_COUNT_FILENAME);
+		}
+		
+				
 		$dups = array();
 		foreach($gan->TaskList as $task)
 		{

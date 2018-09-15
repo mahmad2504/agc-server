@@ -461,7 +461,7 @@ class Query
 			}*/
 		}
 	}
-	public function Run()
+	public function Run($cached=0)
 	{
 		//echo "R ".$this->njql.EOL;
 		//echo "R ".$this->jiracred->url.EOL;
@@ -478,6 +478,9 @@ class Query
 		//if(isset($this->cached))
 		$this->filter = new Filter();
 		$this->filter->task = $this->Task;
+		if($cached == 1)
+			$this->cached = 1;
+		
 		$this->filter->Load($this->filterfile,$this->njql,$rebuild,$this->cached);
 		
 		//else
@@ -1025,10 +1028,13 @@ class GanResources
 		if(file_exists($filename))
 		{
 			//echo "Reading user calender".$resource->Name.EOL;
-			
+			LogMessage(INFO,__CLASS__,"Found calendar for ".$resource->Name);
 			$handle = fopen($filename, "r");
+			$calender_code = $resource->Name."cal";
 			while (($line = fgets($handle)) !== false) 
 			{
+				if(strlen(trim($line))==0)
+					continue;
 				$d = explode(":",$line);
 				if(count($d)==2)
 				{
@@ -1038,6 +1044,17 @@ class GanResources
 					{
 						$sdate = strtotime($range[0]);
 						$edate = strtotime($range[1]);
+						if(date('Y-m-d', $sdate)=='1970-01-01')
+						{
+							LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
+							continue;
+						}
+						
+						if(date('Y-m-d', $edate)=='1970-01-01')
+						{
+							LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
+							continue;
+						}
 						//if( ($sdate >= strtotime('today'))||($edate >= strtotime('today') ))
 						if( ($sdate >= strtotime($project->Start)) && ($sdate <= strtotime($project->End) ))
 						{
@@ -1052,6 +1069,11 @@ class GanResources
 					else
 					{
 				$hdate = strtotime($hdate);
+						if(date('Y-m-d', $hdate)=='1970-01-01')
+						{
+							LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
+							continue;
+						}
 						if( ($hdate >= strtotime($project->Start)) && ($hdate <= strtotime($project->End) ))
 						//if($hdate >= strtotime('today'))
 				{
@@ -1063,6 +1085,8 @@ class GanResources
 						}
 					}
 				}
+				else
+					LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
 			// process the line read.
 			}
 			fclose($handle);
@@ -1089,6 +1113,8 @@ class GanResources
 			$handle = fopen($filename, "r");
 			while (($line = fgets($handle)) !== false) 
 			{
+				if(strlen(trim($line))==0)
+					continue;
 				$d = explode(":",$line);
 				if(count($d)==2)
 				{
@@ -1098,20 +1124,38 @@ class GanResources
 					{
 						$sdate = strtotime($range[0]);
 						$edate = strtotime($range[1]);
+						
+						if(date('Y-m-d', $sdate)=='1970-01-01')
+						{
+							LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
+							continue;
+						}
+						
+						if(date('Y-m-d', $edate)=='1970-01-01')
+						{
+							LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
+							continue;
+						}
+						
 						if( ($sdate >= strtotime($project->Start)) && ($sdate <= strtotime($project->End) ))
 						//if( ($sdate >= strtotime('today'))||($edate >= strtotime('today') ))
 						{
 							$sdate = date('Y-m-d', $sdate);
 							$edate = date('Y-m-d', $edate);
 							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
-
 							$data[$sdate] = $edate;
-						}
-				
+						}						
 					}
 					else
 					{
 				$hdate = strtotime($hdate);
+						
+						if(date('Y-m-d', $hdate)=='1970-01-01')
+						{
+							LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
+							continue;
+						}
+						
 						if( ($hdate >= strtotime($project->Start)) && ($hdate <= strtotime($project->End) ))
 						//if($hdate >= strtotime('today'))
 				{
@@ -1123,6 +1167,9 @@ class GanResources
 						}
 					}
 				}
+				else
+					LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
+						
 			// process the line read.
 			}
 			fclose($handle);

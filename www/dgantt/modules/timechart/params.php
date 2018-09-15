@@ -2,10 +2,12 @@
 $scale = 'none';    // can be 'days' 'weeks' 'months'
 $vacations = 0;     // 1 if you need to see vacations . $scale should be set to days then
 $openair = 0;       // 1 to view the openair worklogs as well
+$oa = 0;            // 1 to view the openair worklogs as well (duplicates openair)
 $datatable = 0;     // 1 to fetch the datatable for weekly graph 
 $data=0;            // 1 to fethe the data for chart
 $graph = 0;         // 1 to view graph 
 $ui = 1;            // 0 to turn off ui and see just data
+$type = 'weekly';
 
 if(isset($_GET['scale']))
 	$scale = $_GET['scale'];
@@ -13,6 +15,12 @@ if(isset($_GET['scale']))
 if(isset($_GET['vacations']))
 	if($_GET['vacations'] == 1)
 		$vacations = 1;
+
+if(isset($_GET['oa']))
+	if($_GET['oa'] == 1)
+		$_GET['openair'] = 1;
+	else
+		$_GET['openair'] = 0;
 	
 if(isset($_GET['openair']))
 	if($_GET['openair'] == 1)
@@ -33,4 +41,8 @@ if(isset($_GET['graph']))
 if(isset($_GET['ui']))
 	if($_GET['ui'] == 0)
 		$ui = 0;
+
+if(isset($_GET['type']))
+	if($_GET['type'] == 'monthly')
+		$type = 'monthly';
 ?>

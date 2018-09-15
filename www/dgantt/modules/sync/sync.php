@@ -26,6 +26,13 @@ var count = urldata.length;
 var current  = 0;
 $(document).ready(function()
 {
+	if(count == 0)
+	{
+		$("#image").remove();
+		$('#top').append('<p style="font-size:70%;">Project Does Not Exist</p>');
+		$("#top").css("visibility", "visible");
+		return;
+	}
 	if(noproject==0)
 		$("#image").css("visibility", "visible");
 	else
@@ -33,15 +40,14 @@ $(document).ready(function()
 		$("#image").remove();
 		$("#data").css("visibility", "visible");
 	}
-	
-	console.log("Inside ready");
+
 	if(autorefresh == 0)
 	{
 	current  = 0;
 	if(count > 0)
 	{
 		$('#data').empty();
-		LoadUrl(urldata[current]);
+			LoadUrl(urldata[current],"Syncing...");
 	}
 	else
 	{
@@ -51,7 +57,7 @@ $(document).ready(function()
 	else
 	{
 
-		setInterval(SyncTimer, 1000*60*60);
+		setInterval(SyncTimer, 2000*60*60);
 		if(shoulddobackup == 1)
 		{
 			$('#top').append('<p style="font-size:70%;">Backup Started</p>');
@@ -79,14 +85,14 @@ function SyncTimer() {
 		{
 			urldata[current].rebuild=1;
 			urldata[current].oa=1;
-			LoadUrl(urldata[current]);
+			LoadUrl(urldata[current],"Syncing...");
 		}
 		else
 		{
 			urldata[current].rebuild=0;
 			urldata[current].oa=0;
 			
-			LoadUrl(urldata[current]);
+			LoadUrl(urldata[current],"Syncing...");
 		}
 	
 	}

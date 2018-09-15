@@ -14,15 +14,10 @@ You should have received a copy of the GNU General Public License
 along with AGC.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 ini_set('memory_limit','300M');
 
-if(!file_exists($GAN_FILE))
-{
-		$msg = "Plan '".$subplan."' Does not exist";
-		LogMessage(CRITICALERROR,'SYNC',$msg);
-		CallExit();
-}
+DefaultCheck();
+
 ResetGlocals();
 $gan = new Gan($GAN_FILE);
 if($gan->IsArchived == 0)
