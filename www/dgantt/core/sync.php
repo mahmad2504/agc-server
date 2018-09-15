@@ -592,7 +592,9 @@ class Sync
 					$stasks = $this->SortByJiraId($query->Jiratasks,$query->rows);
 					//var_dump($stasks);
 					//$query->Jiratasks = $stasks; TBV-MUMTAZ
+					$jtasksa[] = $stasks ;
 				}
+				else
 				$jtasksa[] = $query->Jiratasks;
 			//foreach($query->Jiratasks as $key=>$jtask)
 				//	echo $key.EOL;
