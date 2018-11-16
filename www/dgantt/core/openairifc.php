@@ -4,19 +4,11 @@
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
 AGC is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-AGC is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
 */
-
 require_once('common.php');	
-require_once(OAFOLDER."/src/includes");
+require_once("dgantt/core/oa/src/includes");
 
 
 class OpenAirIfc 
@@ -29,11 +21,12 @@ class OpenAirIfc
 	function __construct($name=null,$rebuild=0)
 	{	
 		global $OACONF;
-		if(file_exists(OPENAIR_DATA_FILENAME))
+		global $api;
+		if(file_exists($api->paths->openairdatafilepath))
 		{
 			if($rebuild==0)
 			{
-				$data = file_get_contents(OPENAIR_DATA_FILENAME);
+				$data = file_get_contents($api->paths->openairdatafilepath);
 				$this->worklogs = unserialize($data);
 			}
 		}
@@ -46,7 +39,6 @@ class OpenAirIfc
 			$msg = "Rebuilding OpenAir Database";
 			LogMessage(INFO,__CLASS__,$msg);
 			//echo "Rebuilding OpenAir Database".EOL;
-			
 			$oa = new OpenAir($OACONF->api_key,"default",'1.0','agc','1.1',$OACONF->url);
 			$auth = new Auth($OACONF->organization,$OACONF->user,$OACONF->pass);
 			$oa->AddAuth($auth);
@@ -76,7 +68,7 @@ class OpenAirIfc
 			$worklogs_submitted = $oa->ReadWorkLogsByProjectId($project[0]['id'],false);
 			foreach($this->worklogs as &$worklog)
 			{
-						$worklog['approved'] = 1;
+				$worklog['approved'] = 1;
 				$worklog['username'] = $users[$worklog['userid']];
 			}
 			foreach($worklogs_submitted as &$worklog_submitted)
@@ -87,7 +79,7 @@ class OpenAirIfc
 			}
 			
 			$d = serialize($this->worklogs);
-			file_put_contents(OPENAIR_DATA_FILENAME,$d);
+			file_put_contents($api->paths->openairdatafilepath,$d);
 		}
 	}
 	function GetWorkLogs()

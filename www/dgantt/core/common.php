@@ -1,233 +1,82 @@
 <?php
 
+
 /*
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
 AGC is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-AGC is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
 */
 
-//session_start(); /* Starts the session */
-//if($_SESSION['Active'] == false)
-//{ /* Redirects user to Login.php if not logged in */
-//	header("location:../login.php");
-//	exit;
-//}
-
-//$organization = 'mentor';//$_SESSION['Organization'];
-
-require_once('cparams.php');
-
-$organization_folder = DATA_FOLDER."/data/".$organization;
-
-$configuration_folder = $organization_folder."/configuration/"; // end backslash must
-$project_folder = $organization_folder."/".$project_name;
-$plan_folder_path = $project_folder."/".$subplan;
-$gan_folder = DATA_FOLDER."/projects/".$organization."/".$project_name;
-
-define('OPENAIR_DATA_FILENAME',$project_folder."/".$subplan.'/openair');
-define('QUERY_COUNT_FILENAME',$project_folder."/".$subplan.'/querycount');
+//define("EOL","<br>");
 
 
-require_once('globals.php');
-
-
-//define('GANTT_DATA_FILE',$folder."\\gantt");
-//define('ARCHIVE_FOLDER',$folder."\\archive");
-
-// Create Project structure from
-require_once('logger.php');
-require_once('cparams.php');
-//require_once($project_folder.'\\settings.php');
 require_once('encdec.php');
 require_once('gan.php');
 require_once('jirarest.php');
 require_once('filter.php');
 require_once('jsgantt.php');
-require_once('history.php');
-require_once('plan.php');
 require_once('sync.php');
-require_once('analytics.php');
 require_once('openairifc.php');
-//require_once('structure.php');
-//require_once('filter.php');
-//require_once('project.php');
-//require_once('gan.php');
-//require_once('jsgantt.php');
-//require_once('graph.php');
-//require_once('project_settings.php');
+require_once('tj.php');
+require_once('baselines.php');
+require_once('worktimemanager.php');
+require_once('sgan.php');
+require_once('report.php');
+require_once('api.php');
 
-//ERRORS
-define('CRITICALERROR','CRITICALERROR');
-define('ERROR','ERROR');
-define('WARNING','WARNING');
-define('INFO','INFO');
-//define("WEBLINK",$JIRA_URL.'/browse/');
-//define('JIRA_URL',$JIRA_URL);
-//define('QUERY',$QUERY);
-
-
-
+define('EOL','<br>');
 
 date_default_timezone_set('Asia/Karachi');
 
 class Obj{
 }
 
-function TagLogs($tag,$value)
-{
-	global $logger;
-	$logger->Tag($tag,$value);
-}
-function LogMessage($type,$module,$msg,$priority=0)
-{
-	global $logger;
-	if($type == CRITICALERROR)
-		$logger->Add($module,$msg,ERROR,$priority);
-	else
-		$logger->Add($module,$msg,$type,$priority);
-	if($type == CRITICALERROR)
-	{
-		CallExit();
-	}
-}	
-function CallExit($save=1)
-{
-	global $logger;
-	global $_SERVER;
-	$a = array();
-	//$LogMessage('PROJECT','PROJECT',$project_name);
-	//$LogMessage('PROJECT','PROJECT',$project_name);
 
-	if(isset($_SERVER['HTTP_IDENTITY']))
-		$a['IDENTITY'] = $_SERVER['HTTP_IDENTITY'];
-	
-	$a['TAG'] = $logger->GetTypeData('TAG');
-	$a['ERROR'] = $logger->GetTypeData('ERROR');
-	$a['WARNING'] = $logger->GetTypeData('WARNING');
-	$a['INFO'] = $logger->GetTypeData('INFO');
-	
-	if(isset($_SERVER['HTTP_ACCEPT']))
-	{
-	if(strpos($_SERVER['HTTP_ACCEPT'],'json')!=FALSE)
-	{
-		echo json_encode($a);
-	}
-	else
-	{
-			foreach($a as $type=>$logs)
-			{
-				foreach($logs as $log)
-				{
-					echo $log->module."::".$log->message.EOL;
-				}
-			}
-		}
-	}
-	else
-	{
-		echo "ddd";
-		foreach($a as $logs)
-		{
-			foreach($logs as $log)
-			{
-				echo $log->module."::".$log->message.EOL;
-			}
-		}
-		
-	}
-	global $subplan;
-	global $project_folder;
-	$folder = $project_folder."/".$subplan;
-	$filename = $folder."/sync";
-	if($save == 1)
-	{
-		if(file_exists($folder))
-			file_put_contents($filename, serialize($logger));
-	}
-	exit();
-}
-function dlog($log)
+function CreateParams()
 {
-	$traces = debug_backtrace();
-	
-	$trace = $traces[0];
-	$line  = $trace['line'];
-	
-	$trace = $traces[1];
-	//print_r($trace);
-	echo basename($trace['file'])."-->";
-	echo $trace['class'].'::';
-	echo $trace['function'].'()';
-	//echo '(';
-	//$del = '';
-	//foreach($trace['args'] as $arg)
-	//{
-	//	echo $del;$del=',';
-	//	echo $arg;
-	//}
-	//echo ")";
-	
-	echo "  #".$line." ".$log.EOL;
-}
-$pstart = array();
-function microtime_float($tag='v1')
-{
-	global $pstart;
-    list($usec, $sec) = explode(" ", microtime());
-	if(!isset($pstart[$tag]))
-	{
-		$pstart[$tag] = ((float)$usec + (float)$sec);
-		return 0;
-	}
-	
-	$cur = ((float)$usec + (float)$sec) - $pstart[$tag];
-	$pstart[$tag] = ((float)$usec + (float)$sec);
-    return $cur;
-}
-
-function trace($log,$type='LOG')
-{
-	if($type == 'ERROR')
-	{
-		if(isset(debug_backtrace()[1]['class']))
-			echo "ERROR::".debug_backtrace()[1]['class']."::".debug_backtrace()[1]['function']."::".$log.EOL;
-		else
-			echo "ERROR::"."::".$log."\n";
-	}
-	else if($type == 'WARN')
-	{
-		echo "WARN::".debug_backtrace()[1]['class']."::".debug_backtrace()[1]['function']."::".$log.EOL;
-	}
-	else if($type == 'MSG')
-	{
-		echo $log.EOL;
-	}
-	else if($type == 'LOG')
-		echo 'LOG '.$log.EOL;
-	else
-		echo $type."::".$log.EOL;
-}
-function HtmlHeader($title)
-{
-	echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>'. $title.'</title></head><body>';
-}
-function HtmlFooter()
-{
-	echo '</body></html>';
+	$obj =  new Obj();	
+	$obj->board = 'project';
+	$obj->resource = null;
+	$obj->baseline = 'none';
+	$obj->oa = 0;
+	$obj->level = 0;
+	$obj->minview = 0;
+	$obj->cached = 0;
+	$obj->autorefresh = 0;
+	$obj->save = 0;
+	$obj->rebuild = 0;
+	$obj->debug = 0;
+	$obj->filter=0;
+	$obj->structure=0;
+	$obj->overwrite=0;
+	$obj->reference = 'latest';
+	$obj->scale = 'days';
+	$obj->vacations = 0; 
+	$obj->type = 'weekly';	
+	$obj->user='all';	
+	$obj->weekend='project';
+	$obj->width=2000;
+	$obj->height=4000;
+	$obj->synctimeout = 300;
+	$obj->jira=1;
+	$obj->testnumber=0;
+	$obj->testmode=0;
+	$obj->view=1;
+	$obj->date = Date('Y-m-d');
+	return $obj;	
 }
 function GetToday($format)
 {
 	//return "2017-08-12";
 	return Date($format);
+}
+function IsItFutureDate($date)
+{
+	if(strtotime(GetToday('Y-m-d'))<strtotime($date))
+		return 1;
+	return 0;
 }
 function ReadDirectory($directory)
 {
@@ -270,33 +119,126 @@ function ReadFiles($directory,$filter)
 	}
 	return $files;
 }
-function DefaultCheck()
+function LoadGan($serializefile)
 {
-	global $GAN_FILE;
-	global $project_name;
-	global $plan_folder_path;
-	global $subplan;
-	global $cmd;
-	global $ui;
+
+	$gan = null;
+	if(file_exists($serializefile))
+	{
+		$data = file_get_contents($serializefile);
+		$gan = unserialize($data);
+	}
+	else
+		LogMessage(WARNING,'','Serialized Gan not found');
+	return $gan;
+}
+function GetEndMonthDate($date)
+{
+	$lastDateOfMonth = date("Y-m-t", strtotime($date));
+	return $lastDateOfMonth;
+}
+
+function GetEndWeekDate($date,$weekend)
+{
+	$WEEK_DAY = ucfirst(substr($weekend,0, 3));
+	//$WEEK_DAY = 'Tue';
+	$week['Fri'] = 'friday';
+	$week['Sat'] = 'saturday';
+	$week['Sun'] = 'sunday';
+	$week['Mon'] = 'monday';
+	$week['Tue'] = 'tuesday';
+	$week['Wed'] = 'wednesday';
+	$week['Thu'] = 'thursday';
 	
-	if($ui==1) // We relax check if command is coming for ui as ui will validate 
+	if(!array_key_exists($WEEK_DAY,$week))
+		$WEEK_DAY = 'Sun';
+	
+	$weekday = $WEEK_DAY;
+	
+	$date = strtotime($date);
+	$day = date('D',$date);
+	if($day == $weekday)
+		$date = date('Y-m-d',$date);
+	else
 	{
-		if($cmd == 'sync')
-			if($subplan == 'none')
-				return;
+		$str = "next ".$week[$weekday]." ";
+		$date =  date('Y-m-d', strtotime($str,$date));
 	}
-	// if ui=0 which means command line then do the thourough check
-	if(!file_exists($GAN_FILE))
+
+	return $date;
+}
+
+function truncate_number($val, $precision) {
+    $pow = pow(10, $precision);
+    $precise = (int)($val * $pow);
+    return (float)($precise / $pow); 
+}
+function IsItHoliday($date)
+{
+	$day = Date('D',strtotime($date));
+	if($day == 'Sat' || $day == 'Sun')
+		return 1;
+	return 0;
+}
+function StatusMapper($status)
+{
+	$status = strtoupper($status);
+	
+	if (( $status == 'IN REVIEW')||( $status == 'DONE')||( $status == 'RESOLVED')||($status == 'CLOSED' )||($status == 'IMPLEMENTED' )||($status == 'VERIFIED')||($status == 'SATISFIED'))
 	{
-		$msg = "Plan '".$subplan."' Does not exist";
-		LogMessage(CRITICALERROR,'SYNC',$msg);
-		CallExit();
+		return 'RESOLVED';
 	}
-	if(!file_exists($plan_folder_path))
+	else if ( ($status == 'OPEN')||($status == 'REOPENED')||($status == 'BACKLOG'))
+		return 'OPEN';
+	else if($status == 'IN PROGRESS')
+		return 'IN PROGRESS';
+	else
+		return 'OPEN';
+}
+function DateRange($start,$end,&$totaldays,&$remaingdays)
+{
+	$data = array();
+	$begin = new DateTime($start);
+	$end = date('Y-m-d', strtotime('+1 day', strtotime($end)));
+	$end = new DateTime($end);
+	$interval = DateInterval::createFromDateString('1 day');
+	$period = new DatePeriod($begin, $interval, $end);
+	//iterator_count($period);
+	foreach ( $period as $dt )
 	{
-		$msg = "Plan '".$subplan."' Does not exist";
-		LogMessage(CRITICALERROR,'SYNC',$msg);
-		CallExit();
+		
+		$date = $dt->format("Y-m-d");
+	
+		$day = Date('D',strtotime($date));
+	
+		$data[$date] = new Obj();
+		$data[$date]->holiday = IsItHoliday($date);
+		if($data[$date]->holiday ==0) //  working day
+		{
+			$totaldays++;
+			if(IsItFutureDate($date))
+				$remaingdays++;
+		}
+		//echo $dt->format("Y-m-d").EOL;
 	}
+	return $data;
+}
+
+//// Module should call this to enable api 
+//// Returns the path of resource to be loaded
+
+function Router($dresource='view')
+{
+	global $api;
+	if($api->params->view > 1)
+		$dresource='view'.$api->params->view;
+	
+	$resourcename = $api->GetRequestedResourceName();
+	
+	if($resourcename  ==  null) // no resource is requested from command line
+		$resourcepath = $api->LoadResource($dresource);
+	else	
+		$resourcepath = $api->GetRequestedResourcePath();
+	return $resourcepath;	
 }
 ?>

@@ -1,18 +1,12 @@
 <?php
 
+
 /*
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
 AGC is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-AGC is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
 */
 
 require_once('common.php');
@@ -62,7 +56,7 @@ function cmp2($a, $b)
 class Sync
 {
 	//private $plan;
-
+	private $api;
 	public function __get($name)
 	{
 	}
@@ -123,16 +117,19 @@ class Sync
 		}
 		return null;
 	}
-	function __construct($rebuild=0,$debug=0)
+	function __construct()
 	{
-		global $GAN_FILE;
-		global $FILTER_FILE;
-		global $QUERY_FILE ;
-		global $SCHD_SERVER;
-		global $board;
+		global $api;
+		$this->api=$api;
+		$rebuild=$api->params->rebuild;
+		$debug=$api->params->debug;
+		$board=$api->params->board;
+		$save=$api->params->save;
+		$oa=$api->params->oa;
 		try 
 		{
-			$gan = new Gan($GAN_FILE,$rebuild);
+			$gan = new Gan();
+			
 		} 
 		catch ( Exception $e ) 
 		{
@@ -168,58 +165,122 @@ class Sync
 		$filter = new Filter($FILTER_FILE,$gan->Query,$gan->Jiraurl,$rebuild);
 		file_put_contents($QUERY_FILE,$gan->Query);*/
 		
+		
 		$this->SyncFromJira($gan);
 
 		$gan->Update();
 		if($debug)
 			echo '<p1 style="background-color: orange;">State after Update from Jira</p>';
 		
-		$gan->Dump($debug);
-		$data = array(
-			"GAN"  => serialize($gan),
-			"PROJECT" => basename($GAN_FILE)
-		);
-		$result = CallAPI("POST",$SCHD_SERVER."/index.php",http_build_query($data));
-		
-		$data = json_decode($result);
-		if($data == null)
+		if($this->api->paths->schdserver != null)
 		{
-			$msg = "Error in Plan";
-			LogMessage(ERROR,__CLASS__,$msg);
-
-			LogMessage(CRITICALERROR,__CLASS__,$result);
-				
-			//echo "Error in Plan".EOL;
-			//echo $result.EOL;
-			//exit();
+			$gan->Dump($debug);
+			$data = array
+			(
+				"GAN"  => serialize($gan),
+				"PROJECT" => basename($this->api->paths->ganfilepath)
+			);
+			$result = CallAPI("POST",$this->api->paths->schdserver."/index.php",http_build_query($data));
+			$data = json_decode($result);
+			if($data == null)
+			{
+				$msg = "Error in Plan";
+				LogMessage(ERROR,__CLASS__,$msg);
+				LogMessage(CRITICALERROR,__CLASS__,$result);
+			}
+			LogMessage(CRITICALERROR,"SYNC",'Broken as there is no resource calendar');
 		}
-		//var_dump($data).EOL;
-		//$tj = new Tj($gan);
-		
-		//global $TJ_FILE;
-		//$tj->Save($TJ_FILE);
-		//$error = $tj->Execute(1);
-		//if($error != null)
-		//{
-		//	echo $error.EOL;
-		//	echo "Correct the Plan first";
-		//	exit();
-		//}
-		//$data = $tj->ReadOutput();
-	
-		$tasks = $gan->TaskListByExtId;
-		//foreach($tasks as $key=>$task)
-		//	echo $key.EOL;
-		//return;
-		//foreach($data as $record)
-		//echo $record->ExtId.EOL;*/
-
-		foreach($data as $record)
+		else
 		{
+			$tj = new Tj($gan);
+			if(!file_exists($this->api->paths->tjoutputfolder))
+				mkdir($this->api->paths->tjoutputfolder);
+			$tj->Save($this->api->paths->tjoutputfolder.'/plan.tjp');
+			$error = $tj->Execute(1,$this->api->paths->tjoutputfolder,0);
+			if($error != null)
+			{
+				LogMessage(CRITICALERROR,'Sync','Issues in project plan '.$error);
+			}
+			$data = $tj->ReadOutputCsv('week',$this->api->paths->tjoutputfolder);
+			$data2 = $tj->ReadOutputCsv('month',$this->api->paths->tjoutputfolder);
+			$resdata = $tj->ReadResourceCsv($this->api->paths->tjoutputfolder);
+			$data->headers->month = $data2->headers->month;
+			foreach($data->tasks as $ExtId=>$task)
+			{
+				//echo $ExtId."<br>";
+				$data->tasks[$ExtId]->month = $data2->tasks[$ExtId]->month;
+			}
+		}
+		$tasks = $gan->TaskListByExtId;
 		
-			$tasks[$record->ExtId]->Start = $record->Start;
+		//var_dump($data->headers->week);
+		//var_dump($data->headers->month);
+		//$gan->WeekWorkEstimateHeaders = $data->headers->week;
+		//$gan->MonthWorkEstimateHeaders = $data->headers->month;
+		$resources =  $gan->Resources;
+		foreach($resdata->resources as $name=>$record)
+		{
+			$name =  trim($name);
+
+			//rfc means resource forecast data 
+			$gresource = $gan->GetResource($name);
+			if($gresource == null)
+			{
+				$extid = explode(" ",$name)[0];
+				//echo $extid .EOL;
+				// This might be task work forecast
+				
+				
+				continue;
+			}
+			$weekrfcdata = array();
+			$i=0;
+			foreach($resdata->headers->week as $date)
+			{
+				if(strlen(trim($record->week[$i])==0))
+					$weekrfcdata[$date] = 0;
+				else
+					$weekrfcdata[$date] = $record->week[$i];
+				$i++;
+			}
+			$ignorezerovalues = 1;
+			$ignore = array();
+			foreach($weekrfcdata as $date=>$value)
+			{
+				if($ignorezerovalues==1)
+				{
+					if($value == 0)
+					{
+						unset($weekrfcdata[$date]);
+						continue;
+					}
+					$ignorezerovalues = 0;
+				}
+				if($value == 0)
+					$ignore[] = $date;
+				else
+					$ignore = array();
+				//$nweekfcdata[$date] = $value;
+			}
+			foreach($ignore as $date)
+			{
+				unset($weekrfcdata[$date]);
+			}
+			$gresource->WeekWorkEstimatesFC = $weekrfcdata;
+		}
+		
+		foreach($data->tasks as $ExtId=>$record)
+		{
+			$temp = explode(' ',$ExtId);
+			if(count($temp) == 0)
+			{
+				LogMessage(ERROR,"SYNC",$ExtId." looks strange from schedular");
+				continue;
+			}
+			$ExtId = trim($temp[0]);
+			$tasks[$ExtId]->Start = $record->Start;
 			//echo $record->Start.EOL;
-			$tasks[$record->ExtId]->End = $record->End;
+			$tasks[$ExtId]->End = $record->End;
 			//echo $record->End.EOL;
 			//$gan->TaskListByExtId[$record->ExtId]->End = $record->End;
 			//$tasks[$record->ExtId]->End = $record->End;
@@ -229,14 +290,85 @@ class Sync
 			//		$tasks[$record->ExtId]->IsTeamResource = true;
 			//}
 			
-			if($tasks[$record->ExtId]->IsParent == 0)
+			if($tasks[$ExtId]->IsParent == 0)
 			{
+				//echo $record->Resource.EOL;
 				if(strlen($record->Resource) > 0)
 				{
-					$tasks[$record->ExtId]->ActualResource = $gan->GetResource($record->Resource);
+					$tasks[$ExtId]->ActualResource = $gan->GetResource($record->Resource);
 				}
+			}	
+			$weekfcdata = array();
+			$i=0;
+			foreach($data->headers->week as $date)
+			{
+				if(strlen(trim($record->week[$i])==0))
+					$weekfcdata[$date] = 0;
+				else
+					$weekfcdata[$date] = $record->week[$i];
+				$i++;
 			}
 			
+			$monthfcdata = array();
+			$i=0;
+			foreach($data->headers->month as $date)
+			{
+				if(strlen(trim($record->month[$i])==0))
+					$monthfcdata[$date] = 0;
+				else
+					$monthfcdata[$date] = $record->month[$i];
+				$i++;
+			}
+			$ignorezerovalues = 1;
+			$ignore = array();
+			foreach($monthfcdata as $date=>$value)
+			{
+				if($ignorezerovalues==1)
+				{
+					if($value == 0)
+					{
+						unset($monthfcdata[$date]);
+						continue;
+					}
+					$ignorezerovalues = 0;
+				}
+				if($value == 0)
+					$ignore[] = $date;
+				else
+					$ignore = array();
+			}
+			foreach($ignore as $date)
+			{
+				unset($monthfcdata[$date]);
+			}
+			/////////////////////////////////////
+			$ignorezerovalues = 1;
+			$ignore = array();
+			foreach($weekfcdata as $date=>$value)
+			{
+				if($ignorezerovalues==1)
+				{
+					if($value == 0)
+					{
+						unset($weekfcdata[$date]);
+						continue;
+					}
+					$ignorezerovalues = 0;
+				}
+				if($value == 0)
+					$ignore[] = $date;
+				else
+					$ignore = array();
+				//$nweekfcdata[$date] = $value;
+			}
+			foreach($ignore as $date)
+			{
+				unset($weekfcdata[$date]);
+			}
+
+			$tasks[$ExtId]->WeekWorkEstimatesFC = $weekfcdata;
+			$tasks[$ExtId]->MonthWorkEstimatesFC = $monthfcdata;
+
 			//if($i==0) // Check first time if we need to loop again or not
 			//{
 			//	if($tasks[$record->ExtId]->ResourceEfficiency != 1)
@@ -249,24 +381,33 @@ class Sync
 			echo '<p1 style="background-color: orange;">State after Update from Schedular</p>';
 		
 		$gan->Dump($debug);
-		
+	
 		//$resource = $gan->GetResource('mahmad1');
 		//$task = $gan->AddTask("Task sasas","HMIP-8");
 		//$gan->Dump();
 		$gan->Save();
 		$this->SaveGantt($gan);
-		$this->SaveLog($gan);
-		global $oa;
+		$this->SaveInDataBank($gan);
+		$this->SaveSerializedGan($gan);
+		
 		global $OACONF;
 		if(($OACONF != null)&&( strlen(trim($gan->Project->Name))>0))
 		{
-		$oaifc = new OpenAirIfc($gan->Project->Name,$oa);
-		$resources = $gan->Resources;
-		foreach($resources as $resource)
-		{
-			if($resource->OpenAirName != null)
-				$this->ValidateOpenAirWorklogs($oaifc,$resource);
-		}
+			$oaifc = new OpenAirIfc($gan->Project->Name,$oa);// this will rebuild if oa=1
+			
+			$wtm =  new WorkTimeManager($this->api);
+			$users = $wtm->FindOrphanOpenAirUsers();
+			foreach($users as $user)
+			{
+				$msg = "OA user ".$user." Is not linked with Jira user";
+				LogMessage(WARNING,__CLASS__,$msg);
+			}
+			$users = $wtm->FindNonActiveOpenAirUsers();
+			foreach($users as $jirauser=>$oauser)
+			{
+				$msg = "OA Timesheet not found for user <span style='color:red;'>".$jirauser."(id=".$oauser.")</span>";
+				LogMessage(INFO,__CLASS__,$msg);
+			}
 		}
 		else
 		{
@@ -277,98 +418,66 @@ class Sync
 			}
 		}
 		
-		global $save;
+
 
 		if($save == 1)
 		{
-			global $BASELINE_FOLDER;
-			global $JS_GANTT_FILE;
-			global $GAN_SERIALIZED_FILE;
-			global $LOG_FOLDER;
-			global $GAN_FILE;
-			
-			//echo $BASELINE_FOLDER.EOL;
-			if(!file_exists($BASELINE_FOLDER))
-				mkdir($BASELINE_FOLDER);
-		
-			$base = $BASELINE_FOLDER."/".GetToday('Y-m-d');
-			if(!file_exists($base))
-				mkdir($base);
-			copy($JS_GANTT_FILE,$base."/jsgantt.xml");
-			$ganname = basename($GAN_FILE);
-			copy($GAN_FILE,$base."/".$ganname);
-			//echo $GAN_FILE."-->".$base."/".$ganname.EOL;
-			copy($LOG_FOLDER."/".GetToday('Y-m-d'),$base."/logdata");
-			$msg = "Base line saved";
-			LogMessage(INFO,__CLASS__,$msg);
-		}
-	
-		//global $TJ_FILE;
-		//echo $TJ_FILE;
-		//$tj->Save($TJ_FILE);
-		//$tj->CleanUp();
+			$bl = new Baselines();
+			$bl->AddBaseline();
 
+		}
 	}
-	function SaveLog($gan)
+	function SaveInDataBank($gan)
 	{
-		global $LOG_FOLDER;
-		$head = new Analytics('project');
-		$history = new History($LOG_FOLDER);
-		$today = GetToday("Y-m-d");
-
-
-		if($gan->End == null)
-			$history->Add($today,$gan);
-		else
-		{	
-			if($gan->Progress < 100)
-			{
-				if(strtotime($today)>strtotime($gan->End))
-				{
-					//echo $gan->Progress.'% Complete .Project end date was '.$gan->End.EOL;
-					$msg = 'Project end date was '.$gan->End;
-					LogMessage(ERROR,__CLASS__,$msg);
-				}
-				$history->Add($today,$gan);
-			}
-			else
-			{
-				if($head->IsResolved  == 0)
-				{
-					$history->Add($today,$gan);
-				}
-			}
-			/*if(strtotime($today)>strtotime($gan->End))
-			{
-				if($gan->Progress.EOL;
-			}
-				$history->Add($gan->End,$gan);
-			else
-				$history->Add($today,$gan);*/
-		}
+		return; // We no more save snapshots
+		/*$today = GetToday("Y-m-d");
+		$db = new DataBank($this->params);
+		$db->Add($gan);
+		if(strtotime($today)>strtotime($gan->End))
+		{
+			$msg = 'Project end date was '.$gan->End;
+			LogMessage(ERROR,__CLASS__,$msg);
+		}*/
+	}
+	public function SaveSerializedGan($gan)
+	{
+		$ganstr = serialize($gan);
+		file_put_contents($this->api->paths->sganfilepath,$ganstr);
+		
 	}
 	function SaveGantt($gan)
 	{
-		global $LOG_FOLDER;
-		$tasks =  $gan->TaskTree;
+		$tasks =  $gan->TaskList;
+		
 		$jsgantt = new JSGantt($tasks);
 		$calendar = implode(",",$gan->Holidays);
-		global $PLAN_FOLDER;
-		if(!file_exists($PLAN_FOLDER))
-			mkdir($PLAN_FOLDER);
 
-		global $JS_GANTT_FILE;
-		$jsgantt->Save($JS_GANTT_FILE,$gan->Jira->url,$this->End,$calendar);
-		
-		
-		//$today = GetToday("Y-m-d");
-		//$jsgantt->Save($LOG_FOLDER."//jsgantt.xml",$gan->Jira->url,$this->End,$calendar);
+		if(!file_exists($this->api->paths->planfolder))
+			mkdir($this->api->paths->planfolder);
+
+		$jsgantt->Save($this->api->paths->jsganttfilepath,$gan->Jira->url,$this->End,$calendar);
 	}
 	function SyncTask($gan,$jtask,$task)
 	{
 		$task->Name = $jtask->summary;
+		foreach($jtask->worklogs as $worklog)
+		{
+			if($task->IsNonBillable==1)
+				$worklog->nonbillable = 1;
+			else
+				$worklog->nonbillable = 0;
+		}
+			
+		if(isset($jtask->description))
+			$task->Description = $jtask->description;
+			
 		//echo $task->Name.EOL;
 		$task->Status = $jtask->status;
+		if(isset($jtask->closedon))
+		{
+			$task->ClosedOn = $jtask->closedon;
+			//echo $jtask->closedon.EOL;
+		}
 		$task->HasSubtasks = $jtask->subtasks;
 		if(isset($jtask->duedate))
 			if(strlen($jtask->duedate)>0)
@@ -387,9 +496,9 @@ class Sync
 			}
 			else if($task->ForcePlannedResource == 0)
 			{
-			$task->ActualResource = $resource;
-			$task->JiraAssignedResource=1;
-		}
+				$task->ActualResource = $resource;
+				$task->JiraAssignedResource=1;
+			}
 			else
 			{
 				$url = '<a href="'.$gan->Jira->url.'/browse/'.$task->JiraId.'">'.$task->JiraId.'</a>';
@@ -399,6 +508,26 @@ class Sync
 				$task->ForcePlannedResource = 2;
 			}
 		}
+		/*if($task->Status == 'RESOLVED')
+		{
+			if(isset($jtask->story_points))
+			{
+				if($task->ClosedOn == null)
+				{
+					echo "Pulling Change log of ".$task->JiraId.EOL;
+					$changelogs = Jirarest::GetStatusChangeLog($task->JiraId);
+					if(count($changelogs)>0)
+					{
+						$task->ClosedOn = date( "Y-m-d ", strtotime($changelogs[0]->date) );
+						//echo  date( "Y-m-d ", strtotime($changelogs[0]->date) ).EOL;
+						//var_dump($changelogs[0]);
+					}
+				}
+			}
+		}
+		else
+			$task->ClosedOn = null;*/
+		
 		if($jtask->timeoriginalestimate != null)
 		{
 			$task->ActualEffort = $jtask->timeoriginalestimate/(60*60*8); // In days
@@ -406,7 +535,10 @@ class Sync
 		else
 		{
 			if(isset($jtask->story_points))
+			{
+				$task->StoryPoints = $jtask->story_points;
 				$task->ActualEffort = $jtask->story_points;
+			}
 			//echo $jtask->story_points.EOL;
 		}
 		if($jtask->subtasks == 1)
@@ -421,8 +553,8 @@ class Sync
 		}
 		if($gan->Project->JiraDependencies == 1)
 		{
-		if(count($jtask->issuelinks[DEPENDENCY_DEPENDS])>0)
-			$gan->AddDependency($task,$jtask->issuelinks[DEPENDENCY_DEPENDS]);
+			if(count($jtask->issuelinks[DEPENDENCY_DEPENDS])>0)
+				$gan->AddDependency($task,$jtask->issuelinks[DEPENDENCY_DEPENDS]);
 		}
 		$task->IssueType = $jtask->issuetype;
 		
@@ -532,7 +664,7 @@ class Sync
 	}
 	function SyncFromJira($gan)
 	{
-		global $board;
+		$board = $this->api->params->board;
 		//$jtasks = $filter->GetData();
 		
 		//print_r($jtasks);
@@ -563,9 +695,9 @@ class Sync
 		$i=0;
 		$forcecached = 0;
 		$j=0;
-		if(file_exists(QUERY_COUNT_FILENAME))
+		if(file_exists($this->api->paths->querycountfilepath))
 		{
-			$j = file_get_contents(QUERY_COUNT_FILENAME);
+			$j = file_get_contents($this->api->paths->querycountfilepath);
 		}
 		$nqueries = count($queries);
 		foreach($queries as $query)
@@ -595,7 +727,7 @@ class Sync
 					$jtasksa[] = $stasks ;
 				}
 				else
-				$jtasksa[] = $query->Jiratasks;
+					$jtasksa[] = $query->Jiratasks;
 			//foreach($query->Jiratasks as $key=>$jtask)
 				//	echo $key.EOL;
 			}
@@ -604,36 +736,37 @@ class Sync
 			//}
 			$i++;
 			if($diff > 30)
-			{
-				if($forcecached==0)
 				{
-					$percent = $i/$nqueries*100;
-					$percent = round($percent,0);
-					if($percent < 100)
+					if($forcecached==0)
 					{
-					file_put_contents(QUERY_COUNT_FILENAME,$i);
-						//$msg = "Partially Rebuilt [".$j."-".$i."] ".$percent."% completed";
-						$msg = $percent."% completed";
-						LogMessage(ERROR,__CLASS__,$msg);
-						TagLogs('retry',$msg);
-					$forcecached = 1;
+						$percent = $i/$nqueries*100;
+						$percent = round($percent,0);
+						if($percent < 100)
+						{
+							file_put_contents($this->api->paths->querycountfilepath,$i);
+							//$msg = "Partially Rebuilt [".$j."-".$i."] ".$percent."% completed";
+							$msg = $percent."% completed";
+							LogMessage(ERROR,__CLASS__,$msg);
+							TagLogs('retry',$msg);
+							$forcecached = 1;
+						}
+					}
 				}
-			}
-			}
 			//	exit();
 			//}
 			
 		}
 		if($forcecached == 0)
 		{
-			if(file_exists(QUERY_COUNT_FILENAME))
-				unlink(QUERY_COUNT_FILENAME);
+			if(file_exists($this->api->paths->querycountfilepath))
+				unlink($this->api->paths->querycountfilepath);
 		}
 		
 				
 		$dups = array();
 		foreach($gan->TaskList as $task)
 		{
+			//echo $task->Name.EOL;
 			//if(!$task->IsParent)
 			{
 				if(count($task->Tags) > 0)
@@ -658,15 +791,17 @@ class Sync
 							$jtask->handled = true;
 							$task->handled = 1;
 							//echo $task->Name." mark handled".EOL;
+							//echo "Sync1s ".$task->JiraId.EOL;
 							$this->SyncTask($gan,$jtask,$task);
 						}
 						else
 						{
+							//echo $key." not handled".EOL;
 						}
 					}
 					if($task->handled == 0)
 					{
-						if(count($task->Tags[0]) >0)
+						if(strlen($task->Tags[0]) >0)
 						{
 							$tagparts = explode("-",$task->Tags[0]);
 							if(count($tagparts)==2)
@@ -675,8 +810,8 @@ class Sync
 								{
 									$msg = $task->Name." @".$task->Id." is misplaced and must be removed from plan";
 									LogMessage(WARNING,__CLASS__,$msg);
+								}
 							}
-						}
 						}
 						
 					}
@@ -717,7 +852,7 @@ class Sync
 						$ptask_key = $this->FindParentTask($key,$jtasks,$jtask->query->rows);	
 						if($ptask_key == null)
 						{
-					$task = $gan->AddTask($jtask->summary,$key,$jtask->query->Task);
+					        $task = $gan->AddTask($jtask->summary,$key,$jtask->query->Task);
 						}
 						else
 						{
@@ -773,8 +908,8 @@ class Sync
 					{
 						if( isset($jtasksn->$key))
 							$jtasksn->$key->handled = true;
-						
-					}
+					
+				}
 				}
 			}
 		}
@@ -824,12 +959,12 @@ class Sync
 											
 			foreach($queries as $query)
 			{
-					$key = $task->JiraId;
-					if(isset($query->Jiratasks->$key))
-					{
+				$key = $task->JiraId;
+				if(isset($query->Jiratasks->$key))
+				{
 					$msg = $msg.$delim.$query->Task->Id;
-						$delim = ",";
-					}
+					$delim = ",";
+				}
 			}
 			LogMessage(WARNING,__CLASS__,$msg);
 		

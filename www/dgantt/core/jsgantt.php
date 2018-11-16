@@ -1,18 +1,12 @@
 <?php
 
+
 /*
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
 AGC is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-AGC is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
 */
 
 require_once('common.php');	
@@ -47,9 +41,9 @@ class JSGantt
 			if(count($tagspart) == 2)
 			{
 				if( (ctype_alpha($tagspart[0])&&is_numeric($tagspart[1]) ))
-			$node->addChild("pLink",$jiraurl."/browse/".$task->Tags[0]);
-		else
-			$node->addChild("pLink");
+					$node->addChild("pLink",$jiraurl."/browse/".$task->Tags[0]);
+			else
+				$node->addChild("pLink");
 			}
 		}
 		else
@@ -131,8 +125,7 @@ class JSGantt
 		
 		if($task->Deadline != null)
 		{
-			$node->addChild("pDashLink",'dashboard?board='.$task->Name);
-			
+			$node->addChild("pDashLink",'dashboard?board='.$node->Name);
 			if($task->Status == 'RESOLVED')
 			{}
 			else if((strtotime($task->End)) <= (strtotime($task->Deadline)))
@@ -154,6 +147,11 @@ class JSGantt
 		{
 			$ntid = $this->TaskJSGanttXML($jiraurl,$xml,$stask,$task->Id);
 		}
+	}
+	function Read()
+	{
+		global $api;
+		return file_get_contents($api->paths->jsganttfilepath);
 	}
 	function Save($filename,$jiraurl,$projectend=null,$calendar=null)
 	{

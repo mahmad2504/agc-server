@@ -1,23 +1,19 @@
-<?php
+﻿<?php
 
-if(!file_exists($GAN_FILE))
-{
-	echo "Project Does Not Exist".EOL;
-	//$plans = ReadDirectory($project_folder);
-	//foreach($plans as $plan)
-	//	echo $plan.EOL;
-	exit();
-}
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
+*/
 
-$ui=1;
-if(isset($_GET['ui']))
-{
-	if($_GET['ui'] == 0)
-		$ui = 0;
-}
+$api->SetMyParams('width,height,board');
+//$api->params->type = 'monthly';
+//$api->SetMyDefaults($api->params);
 
-if($ui == 1)
-	require_once('html.php');
-else
-	require_once('data.php');
+$resourcepath = Router('view');
+if($resourcepath == null)
+	CallExit();
+require_once($resourcepath);
 ?>

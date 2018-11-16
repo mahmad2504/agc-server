@@ -1,42 +1,14 @@
-﻿<?php
-	require_once(COMMON);
-	require_once("params.php");
-	
-	DefaultCheck();
-	
-	if(strlen($board)==0)
-	{
-		echo "Board not mentioned".EOL;
-		return;
-	}
-	if(($ui == 0)&&($graph==0))
-		{
-			require_once('json.php');
-			return;
-		}
-	if(($ui == 0)&&($graph==1))
-	{
-		require_once('datatable.php');
-		return;
-	}
-	if($datatable == 1)
-		{
-			include_once("datatable.php");
-			return;
-			}
-		if($data==1)
-		{
-			require_once('json.php');
-			return;
-			}
-		if($graph==1)
-					{
-		require_once('graph.php');
-			return;
-				}
-	else
-	{
-		require_once('timechart.php');
-		return;
-				}
-?>
+<?php
+
+/*
+Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
+This file is part of Agile Gantt Chart, an opensource project management tool.
+AGC is free software: you can redistribute it and/or modify
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
+*/
+$api->SetMyParams('scale,vacations,baseline,board,oa');
+$resourcepath = Router('view');
+if($resourcepath == null)
+	CallExit();
+require_once($resourcepath);

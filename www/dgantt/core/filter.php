@@ -1,18 +1,12 @@
 <?php
 
+
 /*
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
 AGC is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-AGC is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
 */
 
 class Filter {
@@ -23,7 +17,7 @@ class Filter {
 	private $twauthors;
 	private $twtasks;
 	private $grand_total;
-	
+	private $enable_description = 0;
 	//public function __get($name) 
   	//{
 	//	switch($name)
@@ -58,7 +52,7 @@ class Filter {
 				return $this->cached;
 			default:
 				$msg =  "Filter does not support ".$name." property";
-				LogMessage('CRITICALERROR',__CLASS__,$msg);
+				LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
 	}
 	function GetField($field,$key)
@@ -98,16 +92,15 @@ class Filter {
 				break;
 			default:
 				$msg = 'cant get '.$field.EOL;
-				LogMessage('CRITICALERROR',__CLASS__,$msg);
+				LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
 		}
-	function __construct()
+	function __construct($enable_description)
 	{
-		
+		$this->enable_description = $enable_description;
 	}
 	function Load($name,$query,$rebuild=0,$cached=-1)
 	{
-		global $force;
 		//if($cached == 0)
 		//	$rebuild=1;
 		//Jirarest::SetUrl($jiraurl);
@@ -116,11 +109,14 @@ class Filter {
 		if(strlen($query) == 0)
 			return;
 		$fields = 'id,key,status,summary,start,end,timeoriginalestimate,timespent,labels,assignee,created,issuetype,issuelinks,emailAddress,aggregatetimespent,subtasks,story_points,duedate';
+		if($this->enable_description==1)
+			$fields = $fields.",description";
+		
 		$this->query = $query;
 		$this->cached=0;
 		if($rebuild==0) // normal sync
 		{
-			//echo "Updating\n";
+			//LogMessage(INFO,'SYNC',"Updating ".$query);
 			
 			$last_update_date = date ("Y/m/d H:i" , filemtime($name));
 			//echo $last_update_date.EOL;
@@ -163,21 +159,39 @@ class Filter {
 			}
 			//else
 			//	echo 'Updating '.$query.EOL;
-			
+			//$this->tasks =  new Obj();
 			for($i=0;$i<count($tasks);$i++)
 			{
+				if(isset($tasks[$i]['story_points']))
+				{
+					if(StatusMapper($tasks[$i]['status'])=='RESOLVED')
+					{
+						if($tasks[$i]['story_points'] > 0)
+						{
+							//echo "Pulling Change log of ".$tasks[$i]['key'].EOL;
+							$changelogs = Jirarest::GetStatusChangeLog($tasks[$i]['key']);
+							if(count($changelogs)>0)
+							{
+								$tasks[$i]['closedon'] = date( "Y-m-d ", strtotime($changelogs[0]->date) );
+								//$task->ClosedOn = date( "Y-m-d ", strtotime($changelogs[0]->date) );
+							}
+						}
+					}
+				}
+				
 				$worklogs = Jirarest::GetWorkLog($tasks[$i]['key']);
 				$tasks[$i]['worklogs'] =  $worklogs;
 				if($this->tasks == null)
 					$this->tasks =  new Obj();
-				$this->tasks->$tasks[$i]['key'] = $tasks[$i];
+				$key = $tasks[$i]['key'];
+				$this->tasks->$key = $tasks[$i];
 			}
 			$msg = $this->task->Name." [Updated]";
-			LogMessage('INFO',__CLASS__,$msg);
+			LogMessage(INFO,__CLASS__,$msg);
 		}
 		else
 		{
-			//echo "Rebuilding  ".$query.EOL;
+			//LogMessage(INFO,'SYNC',"Rebuilding  ".$query);
 			if(file_exists($name))
 			{
 				$data = file_get_contents($name);
@@ -204,22 +218,43 @@ class Filter {
 				}
 				return;
 			}
-			$this->tasks = null;
+			//$this->tasks = null;
 			for($i=0;$i<count($tasks);$i++)
 			{
+				if(isset($tasks[$i]['story_points']))
+				{
+					
+					if(StatusMapper($tasks[$i]['status'])=='RESOLVED')
+					{
+						//echo "Pulling Change log of ".$tasks[$i]['key'].EOL;
+						$changelogs = Jirarest::GetStatusChangeLog($tasks[$i]['key']);
+						if(count($changelogs)>0)
+						{
+							$tasks[$i]['closedon'] = date( "Y-m-d ", strtotime($changelogs[0]->date) );
+							//echo $tasks[$i]['closedon'].EOL;
+							//$task->ClosedOn = date( "Y-m-d ", strtotime($changelogs[0]->date) );
+						}
+					}
+				}
+				//$changelogs = Jirarest::GetStatusChangeLog($tasks[$i]['key']);
+				//var_dump($changelogs);
 				$worklogs = Jirarest::GetWorkLog($tasks[$i]['key']);
+				//if($tasks[$i]['key'] == 'MEH-3602')
+				//	echo "-------------".count($worklogs).EOL;
+				//$worklog->billable = 0;
 				$tasks[$i]['worklogs'] =  $worklogs;
 				if($this->tasks == null)
 					$this->tasks =  new Obj();
-				$this->tasks->$tasks[$i]['key'] = $tasks[$i];
+				$key = $tasks[$i]['key'];
+				$this->tasks->$key = $tasks[$i];
 			}
 			$msg = $this->task->Name." [Rebuild]";
-			LogMessage('INFO',__CLASS__,$msg);
+			LogMessage(INFO,__CLASS__,$msg);
 		}
-		global $PLAN_FOLDER;
-		if(!file_exists($PLAN_FOLDER))
+		global $api;
+		if(!file_exists($api->paths->planfolder))
 		{
-			mkdir($PLAN_FOLDER);
+			mkdir($api->paths->planfolder);
 		}
 		file_put_contents( $name, json_encode( $this->tasks ) );
 		$data = file_get_contents($name);

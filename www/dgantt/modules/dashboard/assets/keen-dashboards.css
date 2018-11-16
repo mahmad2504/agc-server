@@ -13,8 +13,8 @@ body.application,
 
 body.application > .container-fluid,
 .keen-dashboard > .container-fluid {
-  margin: 0 0 32px;
-  margin: 0 0 2rem;
+  margin: 0 0 0px;
+  margin: 0 0 0rem;
   padding-left: 0;
   padding-right: 0;
 }

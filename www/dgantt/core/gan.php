@@ -1,18 +1,12 @@
 <?php
 
+
 /*
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
 AGC is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-AGC is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
 */
 
 class Query
@@ -27,7 +21,7 @@ class Query
 	private $jiracred;
 	private $isstructure=0;
 	private $cached = 1;
-
+	private $project = null;
 	function multiexplode ($delimiters,$string) {
 
 		$ready = str_replace($delimiters, $delimiters[0], $string);
@@ -412,7 +406,9 @@ class Query
 	}
 	function __construct($project,$task,$jql,$jira,$rebuild)
 	{
-		global $PLAN_FOLDER;
+		global $api;
+		$this->project=$project;
+		$paths = $api->paths;
 		$this->task = $task;
 		$this->jiracred = $jira;
 		//echo "C ".$jira->url.EOL;
@@ -444,7 +440,7 @@ class Query
 		//echo $task->Name." ".$task->IsParent.EOL;
 		$md5 = md5($this->njql);
 		//echo $njql." ".$md5.EOL;
-		$this->filterfile = $PLAN_FOLDER."/".$md5;
+		$this->filterfile = $paths->planfolder."/".$md5;
 		$this->rebuild = $rebuild;
 		
 		
@@ -476,7 +472,7 @@ class Query
 		//echo $this->njql.EOL;
 		//echo "this->cached=".$this->cached.EOL;
 		//if(isset($this->cached))
-		$this->filter = new Filter();
+		$this->filter = new Filter($this->project->IsDescriptionEnabled);
 		$this->filter->task = $this->Task;
 		if($cached == 1)
 			$this->cached = 1;
@@ -611,24 +607,26 @@ class GanProject
 	private $isarchived=0;
 	private $weekend =  'Tue';
 	private $jiradependencies = 0;
+	private $enable_description = 0;
 	private $additional_jira=array();
 	public $implements = 'implemented by';
 	
-	function LoadConfiguration($url)
+	static function LoadConfiguration($url)
 	{
-		global $configuration_folder;
+		global $api;
+		$paths = $api->paths;
 		
 		$obj = new Obj();
 		$conffile = explode(":",$url)[1];
 		$conffile = substr($conffile,2);
-		if(!file_exists($configuration_folder.$conffile))
+		if(!file_exists($paths->configurationfolder."/".$conffile))
 		//if(!file_exists(getcwd()."//".$conffile))
 		{
 			$msg =  "Configuration for $conffile not found";
-			LogMessage(CRITICALERROR,__CLASS_,$msg);
+			LogMessage(CRITICALERROR,__CLASS__,$msg);
 		}
 		//$xmldata = file_get_contents(getcwd()."//".$conffile);
-		$xmldata = file_get_contents($configuration_folder.$conffile);
+		$xmldata = file_get_contents($paths->configurationfolder."/".$conffile);
 		
 		$cdoc = new DOMDocument();
 		$cdoc->loadXML($xmldata);
@@ -688,6 +686,12 @@ class GanProject
 				$fields = explode("=",$d);
 				switch(strtolower($fields[0]))
 				{
+					case 'description':
+						if($fields[1] == 1)
+							$this->enable_description = 1;
+						else
+							$this->enable_description = 0;
+						break;
 					case 'jiradependencies':
 						if($fields[1] == 1)
 							$this->jiradependencies = 1;
@@ -759,6 +763,9 @@ class GanProject
 	{
 		switch($name)
 		{
+			case 'IsDescriptionEnabled':
+				return $this->enable_description;
+				break;
 			case 'JiraDependencies':
 				return $this->jiradependencies;
 				break;
@@ -855,7 +862,7 @@ class GanResource
 	private $parent;
 	private $tasks=array();
 	private $vacations=array();
-	
+	private $weekworkestimatesfc;
 	function __construct($doc,$DOMElement=null,$effciencyid=null,$groupid=null,$parent=null,$openairid=null,$calenderid=null)
 	{
 		if($DOMElement == null)
@@ -924,7 +931,7 @@ class GanResource
 				}
 			}
 			
-	}
+		}
 		if($calenderid != null)
 		{
 			$customproperties = $DOMElement->getElementsByTagName('custom-property');
@@ -942,6 +949,9 @@ class GanResource
 	{
 		switch($name)
 		{
+			case 'WeekWorkEstimatesFC':
+				$this->weekworkestimatesfc = $value;
+				break;
 			case 'Task':
 				$this->tasks[$value->Id] = $value;
 				break;
@@ -970,6 +980,9 @@ class GanResource
 	{
 		switch($name)
 		{
+			case 'WeekWorkEstimatesFC':
+				return $this->weekworkestimatesfc;
+				break;
 			case 'Group':
 				return $this->group;
 				break;
@@ -1022,9 +1035,11 @@ class GanResources
 	private $project;
 	function ReadUserCalender($project,$resource)
 	{
-		global $GAN_FILE;
+		global $api;
+		$paths = $api->paths;
+		
 		$data = array();
-		$filename = dirname($GAN_FILE)."/".$resource->Name.".cal";
+		$filename = dirname($paths->ganfilepath)."/".$resource->Name.".cal";
 		if(file_exists($filename))
 		{
 			//echo "Reading user calender".$resource->Name.EOL;
@@ -1064,11 +1079,11 @@ class GanResources
 
 							$data[$sdate] = $edate;
 						}
-				
+						
 					}
 					else
 					{
-				$hdate = strtotime($hdate);
+						$hdate = strtotime($hdate);
 						if(date('Y-m-d', $hdate)=='1970-01-01')
 						{
 							LogMessage(ERROR,__CLASS__,"Invalid date [".$line."] in ".$calender_code." calendar");
@@ -1076,11 +1091,11 @@ class GanResources
 						}
 						if( ($hdate >= strtotime($project->Start)) && ($hdate <= strtotime($project->End) ))
 						//if($hdate >= strtotime('today'))
-				{
+						{
 							$edate = date('Y-m-d', $hdate);
 							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
 
-					$hdate = date('Y-m-d', $hdate);
+							$hdate = date('Y-m-d', $hdate);
 							$data[$hdate] = $edate;
 						}
 					}
@@ -1095,13 +1110,13 @@ class GanResources
 	}
 	function ReadCountryCalender($project,$resource,$calender_code)
 	{
-		global $configuration_folder;
-		global $GAN_FILE;
+		global $api;
+		$paths = $api->paths;
 		
-		$filename_p1 = dirname($GAN_FILE)."/".strtolower($calender_code).".cal";
+		$filename_p1 = dirname($paths->ganfilepath)."/".strtolower($calender_code).".cal";
 		
 		$data = array();
-		$filename_p2 = $configuration_folder.strtolower($calender_code).".cal";
+		$filename_p2 = $paths->configurationfolder."/".strtolower($calender_code).".cal";
 		
 		if(file_exists($filename_p1))
 			$filename = $filename_p1;
@@ -1148,7 +1163,7 @@ class GanResources
 					}
 					else
 					{
-				$hdate = strtotime($hdate);
+						$hdate = strtotime($hdate);
 						
 						if(date('Y-m-d', $hdate)=='1970-01-01')
 						{
@@ -1158,11 +1173,11 @@ class GanResources
 						
 						if( ($hdate >= strtotime($project->Start)) && ($hdate <= strtotime($project->End) ))
 						//if($hdate >= strtotime('today'))
-				{
+						{
 							$edate = date('Y-m-d', $hdate);
 							$edate = date('Y-m-d', strtotime('+1 day', strtotime($edate)));
 
-					$hdate = date('Y-m-d', $hdate);
+							$hdate = date('Y-m-d', $hdate);
 							$data[$hdate] = $edate;
 						}
 					}
@@ -1475,7 +1490,14 @@ class GanTask
 	private $cproperties;
 	private $deadlineGiven=0;
 	private $issuetype =  null;
-	
+	private $weekworkestimatesfc = null;
+	private $monthworkestimatesfc = null;
+	private $milestone = 0;
+	private $closedon = null;
+	private $storypoints = 0;
+	private $description = '';
+	private $nonbillable = 0;
+	private $userdata =  null;
 	//<task id="0" name="Project-1" color="#8cb6ce" meeting="false" start="2017-08-24" duration="1" complete="0" expand="true">
 	function __construct($project,$parenttask,$doc, $DOMElement=null,$cproperties=null,$jira=null,$rebuild=0,$tstart=null,$tend=null)
 	{
@@ -1488,6 +1510,8 @@ class GanTask
 		$found = 0;
 		$queryid = 0;
 		$deadlineid = 0;
+		$milestoneid = 0;
+		$nonbillableid = 0;
 		foreach($cproperties->List as $cpid=>$obj)
 		{
 			//echo $obj->Name.EOL;
@@ -1503,12 +1527,23 @@ class GanTask
 			}
 			if( strtolower(trim($obj->Name)) == 'deadline')
 			{
+				$milestoneid = $cpid;
+				$found++;
+			}
+			if( strtolower(trim($obj->Name)) == 'milestone')
+			{
 				$deadlineid = $cpid;
 				$found++;
 			}
+			if( strtolower(trim($obj->Name)) == 'nonbillable')
+			{
+				$nonbillableid = $cpid;
+				$found++;
+			}
 		}
+		
 		//echo $queryid.$found.EOL;
-		if($found != 3)
+		if($found < 3)
 		{
 		
 			$msg =  "Tag/Query/Deadline Column not found";
@@ -1546,8 +1581,9 @@ class GanTask
 		
 	
 		$this->name = $DOMElement->getAttribute('name');
-	
-			
+		
+
+		
 		$childtasks = $DOMElement->childNodes;
 		$sextid = 1;
 		
@@ -1563,6 +1599,20 @@ class GanTask
 				//echo $cpid.$cproperties->List[$cpid]->Name.EOL;
 				switch( strtolower(trim($cproperties->List[$cpid]->Name)))
 				{
+					case 'nonbillable':
+						if($cpvalue == 'true')
+						{
+							$this->nonbillable = 1;
+						}
+						//echo "------->".$this->milestone.EOL;
+						break;
+					case 'milestone':
+						if($cpvalue == 'true')
+						{
+							$this->milestone = 1;
+						}
+						//echo "------->".$this->milestone.EOL;
+						break;
 					case 'effort':
 						if($cpvalue > 0)
 							$this->effort = $cpvalue;
@@ -1582,24 +1632,26 @@ class GanTask
 						if(strlen(trim($cpvalue))>0)
 						{
 							$deadline = explode("T",$cpvalue)[0];
-							$dl = strtotime($this->deadline);
+							//echo $deadline.EOL;
+							$dl = strtotime($deadline);
+							//echo "Deadline is ".$this->deadline.EOL;
 							if(($dl >= strtotime($this->project->Start))&&($dl <= strtotime($this->project->End)))
 							{
 								// valid milestone date
 								$this->deadline = $deadline;
-						$this->IsTrakingDatesGiven = 2;
+								$this->IsTrakingDatesGiven++;
 								$this->deadlineGiven=1;
 								$this->deadlinenode = $child;
 							}
 							else
 							{
-								$msg = $this->Name." @".$this->Id." had invalid deadline. Ignoring";
+								$msg = $this->Name." @".$this->Id." had invalid deadline.Check project start and end dates. Ignoring";
 								LogMessage(ERROR,__CLASS__,$msg);
-						        }
+							}
 						}
 						break;
 					case 'tracking start':
-						$this->IsTrakingDatesGiven = 1;
+						$this->IsTrakingDatesGiven++;
 						$this->tstart = explode("T",$cpvalue)[0];
 						break;
 					default:
@@ -1625,6 +1677,26 @@ class GanTask
 	{
 		switch($name)
 		{
+			case 'userdata':
+				$this->userdata = $value;
+				break;
+			case 'Description':
+				$this->description = $value;
+				return;
+			case 'StoryPoints':
+				$this->storypoints = $value;
+				break;
+			case 'ClosedOn':
+				$this->closedon = trim($value);
+				break;
+			case 'WeekWorkEstimatesFC':
+				$this->weekworkestimatesfc = $value;
+				//var_dump($value);
+				break;
+			case 'MonthWorkEstimatesFC':
+				$this->monthworkestimatesfc = $value;
+				//var_dump($value);
+				break;
 			case 'IssueType';
 				$this->issuetype =  $value;
 				break;
@@ -1799,6 +1871,27 @@ class GanTask
 	{
 		switch($name)
 		{
+			case 'userdata':
+				return $this->userdata;
+				break;
+			case 'WeekWorkEstimatesFC':
+				return $this->weekworkestimatesfc;
+				break;
+			case 'MonthWorkEstimatesFC':
+				return $this->monthworkestimatesfc;
+				break;
+			case 'StoryPoints':
+				return $this->storypoints;
+				break;
+			case 'ClosedOn':
+				return $this->closedon;
+				break;
+			case 'IsNonBillable':
+				return $this->nonbillable;
+				break;
+			case 'IsMilestone':
+				return $this->milestone;
+				break;
 			case 'IssueType':
 				return $this->issuetype;
 				break;
@@ -1815,6 +1908,8 @@ class GanTask
 			case 'Jtask':
 				return $this->jtask;
 				break;
+			case 'Description':
+				return $this->description;
 			case 'JiraId':
 				if(count($this->Tags)>0)
 					return $this->Tags[0];
@@ -1843,7 +1938,10 @@ class GanTask
 				break;
 			case 'Timespent':
 				if($this->Status == 'RESOLVED')
-					return $this->Duration;
+				{
+					if($this->timespent == 0)
+						return $this->Duration;
+				}
 				return $this->timespent;
 				break;
 			case 'IsParent':
@@ -1933,6 +2031,13 @@ class GanTask
 				{
 					return $this->timespent;
 				}
+				if($this->Status == 'RESOLVED')
+				{
+					if($this->timespent == 0)
+						return $effort;
+					else
+						return $this->timespent;
+				}
 				return $effort;
 				break;
 
@@ -1999,6 +2104,7 @@ class GanTasks
 		$this->listbyexitid[$task->ExtId] = $task;
 		$childtasks = $DOMElement->childNodes;
 		$sectid = 1;
+		//echo "---".$task->Name."--".count($childtasks).EOL;
 		foreach($childtasks as $ctask)
 		{
 			if($ctask->nodeName == 'task')
@@ -2109,7 +2215,8 @@ class GanTasks
 			{
 				$start = $project->Start;
 				$end = $project->End;
-				$this->tree[] = $this->ProcessTaskNode($project,$task,1,$extid,$rebuild,$start,$end);
+				$taski = $this->ProcessTaskNode($project,$task,1,$extid,$rebuild,$start,$end);
+				$this->tree[] = $taski;
 				$this->ResolveDependecy();
 				$this->UpdateTasks();
 				return 1;
@@ -2222,7 +2329,13 @@ class GanTasks
 		else if (array_key_exists("OPEN",$status_srray))
 			$task->Status = "OPEN";
 		else if (array_key_exists("RESOLVED",$status_srray))
-			$task->Status = "RESOLVED";
+		{
+			//if(strlen($task->JiraId) == 0)// Dont resolve a task autumatically if not closed in Jir
+				$task->Status = "RESOLVED";
+			//else
+			//	$task->Status = "IN PROGRESS";
+			//echo $task->JiraId." ".$task->Status.EOL;
+		}
 		else
 		{
 			$msg = "unknown task status ";
@@ -2264,7 +2377,7 @@ class GanTasks
 		}
 
 	}
-	private function ComputeTimeSpent(&$task)
+	prIvate function ComputeTimeSpent(&$task)
 	{
 		if($task->IsParent == 0)
 		{
@@ -2310,8 +2423,12 @@ class Gan
 	private $tasks;
 	private $doc;
 	private $filename;
-	function __construct($filename,$rebuild=0)
+	private $submilestones;
+
+	function __construct()
 	{
+		global $api;
+		$filename = $api->paths->ganfilepath;
 		if(($filename == null)||(!file_exists ($filename)))
 		{
 			$msg =  $filename." does not exist";
@@ -2325,10 +2442,59 @@ class Gan
 		$this->project = new GanProject($this->doc);
 		$this->calendar = new GanCalendar($this->doc);
 		$this->cproperties =  new CustomProperties($this->doc);
-		$this->tasks = new GanTasks($this->doc,$this->cproperties,$this->project->Jira,$rebuild,$this->project);
+		$this->tasks = new GanTasks($this->doc,$this->cproperties,$this->project->Jira,$api->params->rebuild,$this->project);
 		$this->resources =  new GanResources($this->project,$this->doc);
 		$this->allocations =  new GanAllocations($this->doc);
 		$this->AssignResource();
+	}
+	private function Find($task,$board)
+	{
+		foreach($task->Tags as $t)
+		{
+			if(strtolower($t) == strtolower($board))
+			{
+				return $task;
+			}
+		}
+		//echo "[ ".$board."--";
+		//echo $task->Title."]".EOL;
+		if( strpos( strtolower($task->Title), strtolower($board) ) !== false ) 
+		{
+			return $task;
+		}
+		foreach($task->Children as $ctask)
+		{
+			$task = $this->Find($ctask,$board);
+			if($task != null)
+				return $task;
+		}
+		return null;
+	}
+    public function FindTask($board)
+	{
+		$board = urldecode($board);
+		$board = str_replace("'","",$board);
+		$board = str_replace('"',"",$board);
+		if($board == 'project')
+			return $this->TaskTree[0];
+		$task = $this->Find($this->TaskTree[0],$board);
+		return $task;
+	}
+	public function FindSubMilestones($task,$first=1)
+	{
+		if($first==1)
+			$this->submilestones =  array();
+	
+		
+		if($task->IsMilestone ==1)
+		{
+			$this->submilestones[] = $task;
+		}
+		foreach($task->Children as $stask)
+		{
+			$this->FindSubMilestones($stask,2);
+		}
+		return $this->submilestones;
 	}
 	function Update()
 	{
@@ -2411,7 +2577,7 @@ class Gan
 		//echo "Looking fof [".$name."]".EOL;
 		foreach($this->Resources as $resource)
 		{
-			if($resource->Name == $name)
+			if(strtolower($resource->Name) == strtolower($name))
 			{
 				//echo "returning ".$resource->Name.EOL;
 				return $resource;
@@ -2465,6 +2631,9 @@ class Gan
 	{
 		switch($name)
 		{
+			case 'IsDescriptionEnabled':
+				return $this->project->IsDescriptionEnabled;
+				break;
 			case 'Weekend':
 				return $this->project->Weekend;
 				break;
@@ -2478,7 +2647,6 @@ class Gan
 				return $this->tasks->ListByExtId;
 			case 'Queries':
 				$q = array();
-				
 				foreach($this->tasks->List as $task)
 				{
 					//echo $task->Name.EOL;
@@ -2526,9 +2694,7 @@ class Gan
 	{
 		switch($name)
 		{
-			//case 'Jiraurl':
-			//	$this->project->Jiraurl = $value;
-			//	break;
+
 			default:
 				$msg = "Gan cannot set ".$name." property";
 				LogMessage(ERROR,__CLASS__,$msg);
@@ -2767,8 +2933,6 @@ class Gan
 			$this->DumpTask($task);
 		}
 		echo '</table>';
-		
-		
 	}
 }
 

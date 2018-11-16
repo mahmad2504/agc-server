@@ -4,21 +4,11 @@
 Copyright 2017-2018 Mumtaz Ahmad, ahmad-mumtaz1@hotmail.com
 This file is part of Agile Gantt Chart, an opensource project management tool.
 AGC is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-AGC is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with AGC.  If not, see <http://www.gnu.org/licenses/>.
+it under the terms of the The Non-Profit Open Software License version 3.0 (NPOSL-3.0) as published by
+https://opensource.org/licenses/NPOSL-3.0
 */
 
 require_once('common.php');		
-class Object{
-}
-
 
 ////////////////////////////////////////////////////////////////////
 
@@ -29,6 +19,12 @@ define('LINK_IMPLEMENTS_BACKWARD',3);
 define('LINK_TESTS',3);
 define('OTHER_OUTWARD',4);
 define('OTHER_INWARD',5);
+
+function mycmp($a, $b)
+{
+    return strtotime($b->date) > strtotime($a->date);
+}
+
 
 $start = '';
 $end = '';
@@ -67,10 +63,14 @@ class Jirarest
 		CURLOPT_RETURNTRANSFER => true
 		));
 	}
-	static function SetUrl($url,$user=null,$pass=null)
+	static function SetUrl($url=null,$user=null,$pass=null)
 	{
 		global $CustomFields,$story_points,$epic_name,$ext_id,$start,$end,$CONF;
-		self::$url = $url;
+		if($url == null)
+			self::$url = $CONF->url;
+		else
+			self::$url = $url;
+		
 		if($user==null)
 			self::$user = 'himp';
 		else
@@ -112,7 +112,7 @@ class Jirarest
 		else 
 		{ 
 			//DebugLog($result);
-                }
+        }
 		$result = json_decode($result,true);
 		if( is_array ( $result))
 		{
@@ -202,7 +202,7 @@ class Jirarest
 		$url = self::$url. '/rest/api/latest/' . $resource;
 		curl_setopt($curl, CURLOPT_URL,$url);
 		//DebugLog($url);
-		//echo $url;
+	//echo EOL.EOL.$url.EOL.EOL;
 		$result = curl_exec($curl);
 		$ch_error = curl_error($curl); 
 		if ($ch_error) 
@@ -223,9 +223,13 @@ class Jirarest
 			LogMessage(CRITICALERROR,__CLASS__,$msg,1);
 		}
     //echo 'true';
-	//echo($result);
 	//echo EOL.EOL.EOL.EOL;
 		$returnvalue = json_decode($result,true);
+		if(isset($returnvalue["issues"]))
+		{
+			if(count($returnvalue["issues"])==0)
+				return null;
+		}
 		if(isset($returnvalue["errorMessages"]))
 		{
 			$msg = "Jira error :: ".$returnvalue["errorMessages"][0];
@@ -266,7 +270,7 @@ class Jirarest
 		else 
 		{ 
 			//DebugLog($result);
-      }
+		}
 		$json = json_decode($result);
 		//var_dump($result);
 		if(isset($json->forestUpdates[1]->error))
@@ -723,6 +727,8 @@ class Jirarest
 				else 
 					return null;
 				break;
+			case 'changelog':
+				break;
 			default:
 				$msg = "Unhandled field ".$field;
 				LogMessage(ERROR,__CLASS__,$msg,1);
@@ -847,9 +853,13 @@ class Jirarest
 				foreach($fields_names as $field)
 				{	
 					$data = self::ParseJiraData($entry,$field);
-					//var_dump($data).EOL;
-					if( count($data)==2 && array_key_exists('name',$data) && array_key_exists('val',$data) )
-						$task[$data['name']]=$data['val'];
+					if(is_array($data))
+					{
+						if( count($data)==2 && array_key_exists('name',$data) && array_key_exists('val',$data) )
+							$task[$data['name']]=$data['val'];
+						else
+							$task[$field]= $data;
+					}
 					else
 						$task[$field]= $data;
 					//if($field == 'issuelinks')
@@ -972,7 +982,7 @@ class Jirarest
 	static function GetWorkLog($key)
 	{
 		//echo func_get_args()[func_num_args()-1];
-
+		//Jirarest::GetChangeLog($key);
 		
 		$curl = self::getcurl();
 		$worklogs = self::GET("issue/$key/worklog");
@@ -1018,9 +1028,38 @@ class Jirarest
 			$worklog->author = $log['author']['name'];
 			$worklog_array[] = $worklog;
 			
-			//DebugLog($worklog->started." ".$worklog->timespent." ".$worklog->comment);
+			$msg = $worklog->author." ".$worklog->started." ".$worklog->timespent." ".$worklog->comment;
+			//LogMessage(INFO,"FF",$msg);
     	}
 		return $worklog_array;
+	}
+	
+	static function GetStatusChangeLog($key)
+	{
+		//echo func_get_args()[func_num_args()-1];
+		$changelog_array = array();
+		$curl = self::getcurl();
+		$changelogs = self::GET('issue/'.$key.'?expand=changelog&fields=""');
+		if($changelogs == null)
+			return null;
+		foreach($changelogs['changelog']['histories'] as $history)
+		{
+			$date = $history['created'];
+			foreach($history['items'] as $item )
+			{
+				if($item['field'] == 'status')
+				{
+					//echo $key." ".$date." ".$item['toString'].EOL;
+					$obj = new Obj();
+					$obj->date = $date;
+					$obj->status = $item['toString'];
+					
+					$changelog_array[] = $obj;
+				}
+			}
+		}
+		usort($changelog_array, "mycmp");
+		return $changelog_array;
 	}
 }
 ?>
